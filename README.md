@@ -28,7 +28,7 @@ Run the four steps in order:
 python3 data.py          # Search PRIDE and save dataset list
 python3 download.py      # Download files from PRIDE
 python3 convert.py       # Convert RAW -> mzML (skip if already mzML)
-python3 QC_pipeline.py  # Compute QC metrics
+python3 QC_pipeline.py   # Compute QC metrics
 ```
 
 ---
