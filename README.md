@@ -17,10 +17,10 @@ For RAW file conversion you also need:
 ## Usage
 Run the four steps in order:
 ```bash
-python3 data.py          # Search PRIDE and save dataset list
-python3 download.py      # Download files from PRIDE
-python3 convert.py       # Convert RAW -> mzML (skip if already mzML)
-python3 QC_pipeline.py   # Compute QC metrics
+python3 data.py          #Search PRIDE and save dataset list
+python3 download.py      #Download files from PRIDE
+python3 convert.py       #Convert RAW -> mzML (skip if already mzML)
+python3 QC_pipeline.py   #Compute QC metrics
 ```
 
 ---
@@ -39,10 +39,10 @@ python3 QC_pipeline.py   # Compute QC metrics
 ```
 results/
 ├── tsv/
-│   ├── all_metrics.tsv          # 61 metrics per file
-│   └── summary_by_dataset.tsv   # mean/std/min/max per dataset
+│   ├── all_metrics.tsv          #61 metrics per file
+│   └── summary_by_dataset.tsv   #mean/std/min/max per dataset
 └── mzqc/
-    └── <dataset>/<file>.mzQC    # mzQC v1.0.0 per file
+    └── <dataset>/<file>.mzQC    #mzQC v1.0.0 per file
 ```
 
 ---
