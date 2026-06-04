@@ -28,7 +28,7 @@ Run the four steps in order:
 python3 data.py          # Search PRIDE and save dataset list
 python3 download.py      # Download files from PRIDE
 python3 convert.py       # Convert RAW -> mzML (skip if already mzML)
-python3 run_pipeline.py  # Compute QC metrics
+python3 QC_pipeline.py  # Compute QC metrics
 ```
 
 ---
@@ -40,7 +40,7 @@ python3 run_pipeline.py  # Compute QC metrics
 | `data.py` | Queries the PRIDE REST API and saves up to 50 diverse datasets to `pride_datasets.json` |
 | `download.py` | Downloads mzML/mzXML/MGF files to `data/`, and RAW files to `data_raw/` |
 | `convert.py` | Converts RAW files to mzML using ThermoRawFileParser (Mono) or msconvert (Docker) |
-| `run_pipeline.py` | Reads all MS files, computes 61 QC metrics, writes `.mzQC` and `.tsv` outputs |
+| `QC_pipeline.py` | Reads all MS files, computes 61 QC metrics, writes `.mzQC` and `.tsv` outputs |
 
 ---
 
