@@ -39,7 +39,6 @@ MS_EXTENSIONS = {".mzml", ".mzxml", ".mgf"}
 #mzQC document builder
 
 def build_mzqc(metrics, file_path, dataset):
-    now   = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     fname = Path(file_path).name
     ext   = Path(file_path).suffix.lower()
 
@@ -119,10 +118,7 @@ def build_mzqc(metrics, file_path, dataset):
         "NEW-001": ("NEW:0000001", "acquisition mode",
                     "DDA / DIA / MS1-only / MS2-only / DDA-MS2only / DIA-MS2only",
                     None, None),
-        "NEW-002": ("NEW:0000002", "MS level distribution",
-                    "Count of scans at each MS level", None, None),
-        "NEW-003": ("NEW:0000003", "scan polarity distribution",
-                    "Count of positive, negative, and unknown polarity scans", None, None),
+        #NEW-002 & NEW-003 are dict valued, handled in dict metrics loop
         "NEW-004": ("NEW:0000004", "median spectral entropy MS1",
                     "Median Shannon entropy of MS1 intensity distributions", None, None),
         "NEW-005": ("NEW:0000005", "median spectral entropy MS2",
@@ -183,7 +179,7 @@ def build_mzqc(metrics, file_path, dataset):
             qm["unit"] = {"accession": unit_acc, "name": unit_name}
         quality_metrics.append(qm)
 
-    # List-valued metrics
+    #List valued metrics
     LIST_METRICS = {
         "MS:4000061": ("MS:4000061", "MS1 density quantiles",
                        "Q1/Q2/Q3 of MS1 peak counts per scan", None, None),
@@ -249,7 +245,7 @@ def build_mzqc(metrics, file_path, dataset):
             qm["unit"] = {"accession": unit_acc, "name": unit_name}
         quality_metrics.append(qm)
 
-    #Dict valued metrics
+    #dict valued metrics
     DICT_METRICS = {
         "MS:4000063": ("MS:4000063", "MS2 known precursor charge fractions",
                        "Fraction of MS2 scans at each observed charge state", None, None),
@@ -473,19 +469,32 @@ def detect_mode(window_pairs, n_ms2, ms1_count=0):
 
 
 def detect_centroid(path_str, n_sample=30):
-    """Estimate whether spectra are centroid, profile, or mixed"""
+    """Estimate whether spectra are centroid, profile or mixed & for dual polarity files, samples only same polarity MS1 scans to avoid
+    density mixing artifacts that cause profile data to be misclassified."""
     densities = []
-    mgf_file  = is_mgf_path(path_str)
+    mgf_file   = is_mgf_path(path_str)
+    mzxml_file = is_mzxml_path(path_str)
     try:
+        first_pol  = None
+        seen       = 0
         with open_reader(path_str) as reader:
-            for i, spec in enumerate(reader):
-                if i >= n_sample:
-                    break
+            for spec in reader:
+                level = get_ms_level(spec, mgf_file, mzxml_file)
+                if level != 1:
+                    continue
+                pol = get_polarity(spec, mgf_file, mzxml_file)
+                if first_pol is None:
+                    first_pol = pol
+                if pol != first_pol:
+                    continue               
                 _, mzarr = get_arrays(spec, mgf_file)
                 if len(mzarr) > 1:
                     rng = float(mzarr[-1]) - float(mzarr[0])
                     if rng > 0:
                         densities.append(len(mzarr) / rng)
+                seen += 1
+                if seen >= n_sample:
+                    break
     except Exception:
         return "unknown"
     if not densities:
@@ -548,10 +557,16 @@ def freq_per_quarter(rts, n=4):
     dur = (t1 - t0) / n
     if dur == 0:
         return [None] * n
-    return [
-        float(int(((rts >= t0 + i * dur) & (rts < t0 + (i + 1) * dur)).sum()) / dur)
-        for i in range(n)
-    ]
+    out = []
+    for i in range(n):
+        lo_b = t0 + i * dur
+        hi_b = t0 + (i + 1) * dur
+        if i == n - 1:  
+            count = int(((rts >= lo_b) & (rts <= hi_b)).sum())
+        else:
+            count = int(((rts >= lo_b) & (rts < hi_b)).sum())
+        out.append(float(count / dur))
+    return out
 
 
 def signal_jumps(tics, factor=10):
@@ -708,7 +723,9 @@ def compute_dia_metrics(dia_windows):
 #XIC feature detection 
 
 def compute_xic_metrics(path_str, ms2_count=0):
-    """chromatographic feature detection on MS1 scans via pyopenms"""
+    """chromatographic feature detection on MS1 scans via pyopenms.
+    For dual polarity files, runs feature detection on the dominant polarity
+    only to avoid FWHM underestimation from polarity-switching scan gaps."""
     null = {"MS:4000051": None, "MS:4000050": None}
 
     if not PYOPENMS_AVAILABLE:
@@ -724,10 +741,23 @@ def compute_xic_metrics(path_str, ms2_count=0):
         exp_full = oms.MSExperiment()
         oms.MzMLFile().load(path_str, exp_full)
 
-        exp = oms.MSExperiment()
+        pol_counts = {}
         for spec in exp_full:
             if spec.getMSLevel() == 1 and spec.size() > 0:
-                exp.addSpectrum(spec)
+                p = spec.getInstrumentSettings().getPolarity()
+                pol_counts[p] = pol_counts.get(p, 0) + 1
+
+        is_dual_polarity = len(pol_counts) > 1
+        dominant_pol     = max(pol_counts, key=pol_counts.get) if pol_counts else None
+
+        exp = oms.MSExperiment()
+        for spec in exp_full:
+            if spec.getMSLevel() != 1 or spec.size() == 0:
+                continue
+            if is_dual_polarity:
+                if spec.getInstrumentSettings().getPolarity() != dominant_pol:
+                    continue
+            exp.addSpectrum(spec)
 
         if exp.getNrSpectra() < 10:
             return null
@@ -752,7 +782,7 @@ def compute_xic_metrics(path_str, ms2_count=0):
         if not traces:
             return null
 
-        #Elution peak detection
+        #elution peak detection
         epd = oms.ElutionPeakDetection()
         p2  = epd.getDefaults()
         p2.setValue("width_filtering", "auto")
@@ -764,7 +794,7 @@ def compute_xic_metrics(path_str, ms2_count=0):
         if not split:
             return null
 
-        #Feature finding
+        #feature finding
         ffm = oms.FeatureFindingMetabo()
         p3  = ffm.getDefaults()
         p3.setValue("isotope_filtering_model", "none")
@@ -838,6 +868,7 @@ def compute_all_metrics(mzml_path):
     dia_windows                  = {}
 
     ms1_intervals, ms2_intervals = [], []
+    ms1_tics_by_pol              = {}   #pol -> list of (rt, tic)
     prev_ms1_rt = prev_ms2_rt    = None
 
     ms1_empty = ms2_empty        = 0
@@ -854,98 +885,101 @@ def compute_all_metrics(mzml_path):
         _devnull = io.StringIO()
         with warnings.catch_warnings(), contextlib.redirect_stderr(_devnull):
             warnings.simplefilter("ignore")
-        with open_reader(path_str) as reader:
-            for spec in reader:
-                level = get_ms_level(spec, mgf_file, mzxml_file)
-                rt    = get_rt(spec, mgf_file, mzxml_file)
-                ints, mzarr = get_arrays(spec, mgf_file)
-                tic   = get_tic(spec, ints, mgf_file)
-                npk   = len(ints)
+            with open_reader(path_str) as reader:
+                for spec in reader:
+                    level = get_ms_level(spec, mgf_file, mzxml_file)
+                    rt    = get_rt(spec, mgf_file, mzxml_file)
+                    ints, mzarr = get_arrays(spec, mgf_file)
+                    tic   = get_tic(spec, ints, mgf_file)
+                    npk   = len(ints)
 
-                ms_levels.append(level)
+                    ms_levels.append(level)
 
-                polarities.append(get_polarity(spec, mgf_file, mzxml_file))
+                    pol = get_polarity(spec, mgf_file, mzxml_file)
+                    polarities.append(pol)
 
-                if npk > 0:
-                    zero_peaks  += int((ints == 0).sum())
-                    total_peaks += npk
+                    if npk > 0:
+                        zero_peaks  += int((ints == 0).sum())
+                        total_peaks += npk
 
-                if len(mzarr) > 0:
-                    all_mz_min = min(all_mz_min, float(mzarr.min()))
-                    all_mz_max = max(all_mz_max, float(mzarr.max()))
+                    if len(mzarr) > 0:
+                        all_mz_min = min(all_mz_min, float(mzarr.min()))
+                        all_mz_max = max(all_mz_max, float(mzarr.max()))
 
-                if level == 1:
-                    ms1_tics.append(tic)
-                    ms1_rts.append(rt)
-                    ms1_peaks.append(npk)
-                    ms1_entropy_vals.append(_spectral_entropy(ints))
-                    if tic == 0:
-                        ms1_empty += 1
-                    if prev_ms1_rt is not None:
-                        ms1_intervals.append(rt - prev_ms1_rt)
-                    prev_ms1_rt = rt
+                    if level == 1:
+                        ms1_tics.append(tic)
+                        ms1_rts.append(rt)
+                        ms1_peaks.append(npk)
+                        ms1_entropy_vals.append(_spectral_entropy(ints))
+                        if tic == 0:
+                            ms1_empty += 1
+                        if prev_ms1_rt is not None:
+                            ms1_intervals.append(rt - prev_ms1_rt)
+                        prev_ms1_rt = rt
+                        #accumulate per-polarity for CV / signal jump computation
+                        ms1_tics_by_pol.setdefault(pol, []).append((rt, tic))
 
-                elif level == 2:
-                    ms2_tics.append(tic)
-                    ms2_rts.append(rt)
-                    ms2_peaks.append(npk)
-                    ms2_entropy_vals.append(_spectral_entropy(ints))
-                    if tic == 0:
-                        ms2_empty += 1
-                    ms2_total += 1
-                    if prev_ms2_rt is not None:
-                        ms2_intervals.append(rt - prev_ms2_rt)
-                    prev_ms2_rt = rt
+                    elif level == 2:
+                        ms2_tics.append(tic)
+                        ms2_rts.append(rt)
+                        ms2_peaks.append(npk)
+                        ms2_entropy_vals.append(_spectral_entropy(ints))
+                        if tic == 0:
+                            ms2_empty += 1
+                        ms2_total += 1
+                        if prev_ms2_rt is not None:
+                            ms2_intervals.append(rt - prev_ms2_rt)
+                        prev_ms2_rt = rt
 
-                    if not mgf_file:
-                        try:
-                            prec = spec["precursorList"]["precursor"][0]
-                            sel  = prec["selectedIonList"]["selectedIon"][0]
-                            iwin = prec.get("isolationWindow", {})
-                            act  = prec.get("activation", {})
+                        if not mgf_file:
+                            try:
+                                prec = spec["precursorList"]["precursor"][0]
+                                sel  = prec["selectedIonList"]["selectedIon"][0]
+                                iwin = prec.get("isolationWindow", {})
+                                act  = prec.get("activation", {})
 
-                            pmz = _extract_prec_mz(sel)
-                            pch = _extract_prec_charge(sel)
-                            pi  = _extract_prec_intensity(sel)
-                            lo, hi = _extract_isolation_window(iwin)
+                                pmz = _extract_prec_mz(sel)
+                                pch = _extract_prec_charge(sel)
+                                pi  = _extract_prec_intensity(sel)
+                                lo, hi = _extract_isolation_window(iwin)
 
-                            if pmz is not None:
-                                ms2_prec_mz.append(pmz)
-                            if pch is not None:
-                                ms2_charge_list.append(pch)
+                                if pmz is not None:
+                                    ms2_prec_mz.append(pmz)
+                                if pch is not None:
+                                    ms2_charge_list.append(pch)
+                                    charge_annotated += 1
+                                if pi is not None:
+                                    ms2_prec_int.append(pi)
+                                if lo is not None and hi is not None and pmz is not None:
+                                    lo_f, hi_f = float(lo), float(hi)
+                                    wp   = (round(pmz - lo_f, 3), round(pmz + hi_f, 3))
+                                    wkey = (round(pmz - lo_f, 2), round(pmz + hi_f, 2))
+                                    window_pairs.append(wp)
+                                    if wkey not in dia_windows:
+                                        dia_windows[wkey] = {"tics": [], "rts": [], "peaks": []}
+                                    dia_windows[wkey]["tics"].append(tic)
+                                    dia_windows[wkey]["rts"].append(rt)
+                                    dia_windows[wkey]["peaks"].append(npk)
+                                pol_ok = polarities[-1] != "unknown"
+                                if (pmz is not None and lo is not None
+                                        and hi is not None and pol_ok and len(act) > 0):
+                                    meta_complete += 1
+                                it_val = (spec.get("ion injection time") or
+                                          spec.get("ionInjectionTime"))
+                                if it_val is not None:
+                                    it_annotated += 1
+                            except (KeyError, IndexError):
+                                pass
+                        else:
+                            params = spec.get("params", {})
+                            pm = params.get("pepmass")
+                            if pm is not None:
+                                pmz_val = pm[0] if isinstance(pm, (list, tuple)) else float(pm)
+                                ms2_prec_mz.append(float(pmz_val))
+                            ch = str(params.get("charge", "")).replace("+", "").replace("-", "")
+                            if ch.isdigit():
+                                ms2_charge_list.append(int(ch))
                                 charge_annotated += 1
-                            if pi is not None:
-                                ms2_prec_int.append(pi)
-                            if lo is not None and hi is not None and pmz is not None:
-                                lo_f, hi_f = float(lo), float(hi)
-                                wp   = (round(pmz - lo_f, 3), round(pmz + hi_f, 3))
-                                wkey = (round(pmz - lo_f, 2), round(pmz + hi_f, 2))
-                                window_pairs.append(wp)
-                                if wkey not in dia_windows:
-                                    dia_windows[wkey] = {"tics": [], "rts": [], "peaks": []}
-                                dia_windows[wkey]["tics"].append(tic)
-                                dia_windows[wkey]["rts"].append(rt)
-                                dia_windows[wkey]["peaks"].append(npk)
-                            pol_ok = polarities[-1] != "unknown"
-                            if (pmz is not None and lo is not None
-                                    and hi is not None and pol_ok and len(act) > 0):
-                                meta_complete += 1
-                            it_val = (spec.get("ion injection time") or
-                                      spec.get("ionInjectionTime"))
-                            if it_val is not None:
-                                it_annotated += 1
-                        except (KeyError, IndexError):
-                            pass
-                    else:
-                        params = spec.get("params", {})
-                        pm = params.get("pepmass")
-                        if pm is not None:
-                            pmz_val = pm[0] if isinstance(pm, (list, tuple)) else float(pm)
-                            ms2_prec_mz.append(float(pmz_val))
-                        ch = str(params.get("charge", "")).replace("+", "").replace("-", "")
-                        if ch.isdigit():
-                            ms2_charge_list.append(int(ch))
-                            charge_annotated += 1
 
     except Exception as e:
         return {"_error": f"{type(e).__name__}: {e}"}
@@ -959,8 +993,16 @@ def compute_all_metrics(mzml_path):
     all_rts  = (np.concatenate([ms1_rts, ms2_rts])
                 if len(ms1_rts) + len(ms2_rts) > 0 else np.array([]))
 
-    if len(ms1_tics) >= 2:
-        jumps, falls = signal_jumps(ms1_tics)
+    is_dual_pol = len(ms1_tics_by_pol) > 1
+    if is_dual_pol:
+        dom_pol      = max(ms1_tics_by_pol, key=lambda p: len(ms1_tics_by_pol[p]))
+        pol_pairs    = sorted(ms1_tics_by_pol[dom_pol], key=lambda x: x[0])
+        tics_for_cv  = np.array([t for _, t in pol_pairs], dtype=float)
+    else:
+        tics_for_cv  = ms1_tics
+
+    if len(tics_for_cv) >= 2:
+        jumps, falls = signal_jumps(tics_for_cv)
     else:
         jumps, falls = None, None
 
@@ -1002,19 +1044,28 @@ def compute_all_metrics(mzml_path):
             ms1_ms2_ratio = []
             for i in range(4):
                 lo_b, hi_b = t0 + i * dur, t0 + (i + 1) * dur
-                n1 = int(((ms1_rts >= lo_b) & (ms1_rts < hi_b)).sum())
-                n2 = int(((ms2_rts >= lo_b) & (ms2_rts < hi_b)).sum())
+                if i == 3:  
+                    n1 = int(((ms1_rts >= lo_b) & (ms1_rts <= hi_b)).sum())
+                    n2 = int(((ms2_rts >= lo_b) & (ms2_rts <= hi_b)).sum())
+                else:
+                    n1 = int(((ms1_rts >= lo_b) & (ms1_rts < hi_b)).sum())
+                    n2 = int(((ms2_rts >= lo_b) & (ms2_rts < hi_b)).sum())
                 ms1_ms2_ratio.append(float(n1 / n2) if n2 > 0 else None)
 
     redundancy = None
     if mode == "DDA" and ms2_prec_mz and ms2_total > 0:
-        mz_arr    = np.array(ms2_prec_mz)
-        redundant = 0
-        for i in range(len(mz_arr)):
-            diffs    = np.abs(mz_arr - mz_arr[i])
-            diffs[i] = 999
-            if diffs.min() < 0.01:
-                redundant += 1
+        mz_arr  = np.array(ms2_prec_mz)
+        if len(mz_arr) > 1:
+            order    = np.argsort(mz_arr)
+            sorted_mz = mz_arr[order]
+            n         = len(sorted_mz)
+            lo_idx    = np.searchsorted(sorted_mz, sorted_mz - 0.01, side='left')
+            hi_idx    = np.searchsorted(sorted_mz, sorted_mz + 0.01, side='right')
+            #window size including self; match exists when window has > 1 element
+            has_match = (hi_idx - lo_idx) > 1
+            redundant = int(has_match.sum())
+        else:
+            redundant = 0
         redundancy = float(redundant / ms2_total)
 
     m = {}
@@ -1036,11 +1087,22 @@ def compute_all_metrics(mzml_path):
     m["MS:4000031"] = (float(auc_ms1 / auc_ms2)
                        if auc_ms1 is not None and auc_ms2 and auc_ms2 > 0
                        else None)
-    m["MS:4000186"] = tic_change_quantile_ratios(ms1_tics)
-    m["MS:4000187"] = tic_quantile_ratios(ms1_tics)
-    m["MS:4000183"] = tic_quantile_rt_frac(all_tics, all_rts)
-    m["MS:4000184"] = tic_quantile_rt_frac(np.ones(len(ms1_rts)), ms1_rts)
-    m["MS:4000185"] = tic_quantile_rt_frac(np.ones(len(ms2_rts)), ms2_rts)
+    m["MS:4000186"] = tic_change_quantile_ratios(tics_for_cv)  # within polarity
+    m["MS:4000187"] = tic_quantile_ratios(tics_for_cv)        
+    #sort all rts/all_tics by time before computing the combined TIC RT profile
+    if len(all_rts) > 0:
+        _sort_idx = np.argsort(all_rts)
+        _all_rts_sorted  = all_rts[_sort_idx]
+        _all_tics_sorted = all_tics[_sort_idx]
+    else:
+        _all_rts_sorted = all_rts
+        _all_tics_sorted = all_tics
+    m["MS:4000183"] = tic_quantile_rt_frac(_all_tics_sorted, _all_rts_sorted)
+    #sort ms1_rts and ms2 rts before computing scan density RT fractions;
+    _ms1_rts_sorted = np.sort(ms1_rts) if len(ms1_rts) > 0 else ms1_rts
+    _ms2_rts_sorted = np.sort(ms2_rts) if len(ms2_rts) > 0 else ms2_rts
+    m["MS:4000184"] = tic_quantile_rt_frac(np.ones(len(_ms1_rts_sorted)), _ms1_rts_sorted)
+    m["MS:4000185"] = tic_quantile_rt_frac(np.ones(len(_ms2_rts_sorted)), _ms2_rts_sorted)
     m["MS:4000061"] = safe_quantiles(ms1_peaks)
     m["MS:4000062"] = safe_quantiles(ms2_peaks)
     m["MS:4000097"] = int(jumps) if jumps is not None else None
@@ -1051,8 +1113,8 @@ def compute_all_metrics(mzml_path):
     m["MS:4000116"] = safe_quantiles(ms2_prec_int)
 
     xic = compute_xic_metrics(path_str, ms2_count=ms2_total)
-    m["MS:4000051"] = xic["MS:4000051"]   #XIC-FWHM Q1/Q2/Q3(min)
-    m["MS:4000050"] = xic["MS:4000050"]   #XIC50 fraction
+    m["MS:4000051"] = xic["MS:4000051"]  
+    m["MS:4000050"] = xic["MS:4000050"]  
 
     m["NEW-001"] = mode
     m["NEW-002"] = dict(Counter(ms_levels))
@@ -1065,8 +1127,8 @@ def compute_all_metrics(mzml_path):
                     if ms2_peaks else None)
     m["NEW-007"] = dyn_range
     m["NEW-008"] = float(zero_peaks / total_peaks) if total_peaks > 0 else None
-    m["NEW-009"] = coeff_variation(ms1_tics)
-    m["NEW-010"] = gini_coeff(ms1_tics)
+    m["NEW-009"] = coeff_variation(tics_for_cv)    
+    m["NEW-010"] = gini_coeff(tics_for_cv)         
     m["NEW-011"] = baseline
     m["NEW-012"] = sbr
     m["NEW-013"] = safe_quantiles(iso_widths) if iso_widths else None
