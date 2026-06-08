@@ -1,0 +1,553 @@
+{
+  "mzQC": {
+    "version": "1.0.0",
+    "description": "ID-free QC metrics for R265_3d_2b00.mzML (dataset PXD077765)",
+    "runQualities": [
+      {
+        "metadata": {
+          "label": "PXD077765/R265_3d_2b00.mzML",
+          "inputFiles": [
+            {
+              "name": "R265_3d_2b00.mzML",
+              "location": "/Users/fateme/Desktop/test_metadata/QC/QC_pipeline/data/PXD077765/R265_3d_2b00.mzML",
+              "fileFormat": {
+                "accession": "MS:1000564",
+                "name": "PSI mzML file"
+              },
+              "fileProperties": [
+                {
+                  "accession": "MS:1000031",
+                  "name": "instrument model",
+                  "value": "unknown"
+                }
+              ]
+            }
+          ],
+          "analysisSoftware": [
+            {
+              "cvParameter": {
+                "accession": "MS:1003282",
+                "name": "QC pipeline"
+              }
+            }
+          ]
+        },
+        "qualityMetrics": [
+          {
+            "cvParameter": {
+              "accession": "MS:4000059",
+              "name": "number of MS1 spectra",
+              "description": "Total number of MS1 survey scans",
+              "value": 2246
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000060",
+              "name": "number of MS2 spectra",
+              "description": "Total number of MS2 fragment scans",
+              "value": 11230
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000067",
+              "name": "MS1 RT range",
+              "description": "Total retention time span of the run",
+              "value": 69.9918483333333
+            },
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000053",
+              "name": "chromatography duration",
+              "description": "RT span of the active elution window in MS1",
+              "value": 69.9649433333333
+            },
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000065",
+              "name": "MS1 fastest frequency",
+              "description": "Maximum MS1 scan acquisition frequency",
+              "value": 48.62630683199611
+            },
+            "unit": {
+              "accession": "UO:0000106",
+              "name": "hertz"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000066",
+              "name": "MS2 fastest frequency",
+              "description": "Maximum MS2 scan acquisition frequency",
+              "value": 318.30238726453695
+            },
+            "unit": {
+              "accession": "UO:0000106",
+              "name": "hertz"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000095",
+              "name": "MS1 slowest frequency",
+              "description": "Minimum MS1 scan acquisition frequency",
+              "value": 29.1134941045471
+            },
+            "unit": {
+              "accession": "UO:0000106",
+              "name": "hertz"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000096",
+              "name": "MS2 slowest frequency",
+              "description": "Minimum MS2 scan acquisition frequency",
+              "value": 89.04719501326318
+            },
+            "unit": {
+              "accession": "UO:0000106",
+              "name": "hertz"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000029",
+              "name": "area under TIC (MS1)",
+              "description": "Trapezoidal area under the MS1 TIC curve",
+              "value": 3054980162.525774
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000030",
+              "name": "area under TIC (MS2)",
+              "description": "Trapezoidal area under the MS2 TIC curve",
+              "value": 1031995.4841090522
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000031",
+              "name": "MS1 to MS2 signal ratio",
+              "description": "Ratio of MS1 AUC to MS2 AUC",
+              "value": 2960.2650491859617
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000097",
+              "name": "MS1 signal jump count",
+              "description": "Number of 10x intensity jumps in consecutive MS1 TICs",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000098",
+              "name": "MS1 signal fall count",
+              "description": "Number of 10x intensity falls in consecutive MS1 TICs",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000099",
+              "name": "number of empty MS1 spectra",
+              "description": "MS1 scans with zero total intensity",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000100",
+              "name": "number of empty MS2 spectra",
+              "description": "MS2 scans with zero total intensity",
+              "value": 92
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000001",
+              "name": "acquisition mode",
+              "description": "DDA / DIA / MS1-only / MS2-only / DDA-MS2only / DIA-MS2only",
+              "value": "DDA"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000004",
+              "name": "median spectral entropy MS1",
+              "description": "Median Shannon entropy of MS1 intensity distributions",
+              "value": 9.941364823899908
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000005",
+              "name": "median spectral entropy MS2",
+              "description": "Median Shannon entropy of MS2 intensity distributions",
+              "value": 6.775097861615763
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000006",
+              "name": "fraction sparse MS2 spectra",
+              "description": "Fraction of MS2 scans with fewer than 10 peaks",
+              "value": 0.024220837043633127
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000007",
+              "name": "MS2 fragment dynamic range",
+              "description": "Log10 ratio of 95th to 5th percentile MS2 TIC",
+              "value": 1.8690300926122303
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000008",
+              "name": "fraction zero-intensity peaks",
+              "description": "Fraction of all reported peaks with zero intensity",
+              "value": 0.0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000009",
+              "name": "TIC coefficient of variation",
+              "description": "CV of MS1 TIC values across the run",
+              "value": 0.8978568320230872
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000010",
+              "name": "MS1 TIC Gini coefficient",
+              "description": "Gini inequality coefficient of MS1 TIC distribution",
+              "value": 0.47360191677539665
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000011",
+              "name": "baseline noise level",
+              "description": "5th percentile of non-zero MS1 TIC values",
+              "value": 6508198.625
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000012",
+              "name": "signal-to-baseline ratio",
+              "description": "Median MS1 TIC divided by 5th-percentile baseline",
+              "value": 4.057768903757144
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000013",
+              "name": "DDA isolation window width distribution",
+              "description": "Q1/Q2/Q3 of precursor isolation window widths",
+              "value": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "unit": {
+              "accession": "UO:0000221",
+              "name": "dalton"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000014",
+              "name": "precursor redundancy rate",
+              "description": "Fraction of MS2 scans whose precursor m/z matches another scan within 0.01 Da",
+              "value": 0.24140694568121104
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000021",
+              "name": "scan metadata completeness",
+              "description": "Fraction of MS2 scans with all required metadata fields present",
+              "value": 1.0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000022",
+              "name": "centroid vs profile mode",
+              "description": "Detected spectral mode: centroid, profile, mixed, or unknown",
+              "value": "centroid"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000023",
+              "name": "precursor charge annotation rate",
+              "description": "Fraction of MS2 scans with charge state annotated",
+              "value": 0.0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000024",
+              "name": "injection time annotation rate",
+              "description": "Fraction of MS2 scans with ion injection time recorded",
+              "value": 0.0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000061",
+              "name": "MS1 density quantiles",
+              "description": "Q1/Q2/Q3 of MS1 peak counts per scan",
+              "value": [
+                1456.0,
+                1551.0,
+                1601.0
+              ]
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000062",
+              "name": "MS2 density quantiles",
+              "description": "Q1/Q2/Q3 of MS2 peak counts per scan",
+              "value": [
+                134.0,
+                212.0,
+                340.0
+              ]
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000069",
+              "name": "m/z acquisition range",
+              "description": "[min, max] m/z across all scans",
+              "value": [
+                75.00466918945312,
+                2000.0001220703125
+              ]
+            },
+            "unit": {
+              "accession": "UO:0000221",
+              "name": "dalton"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000070",
+              "name": "RT acquisition range",
+              "description": "[min, max] retention time",
+              "value": [
+                0.004205,
+                69.9960533333333
+              ]
+            },
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000183",
+              "name": "TIC quantile RT fractions",
+              "description": "RT fractions at which Q1/Q2/Q3/Q4 of cumulative TIC are reached",
+              "value": [
+                0.337085659189502,
+                0.4414772682218782,
+                0.5701868043728614,
+                1.0
+              ]
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000184",
+              "name": "MS1 quantile RT fractions",
+              "description": "RT fractions at which Q1/Q2/Q3/Q4 of MS1 scan count are reached",
+              "value": [
+                0.24596220402379673,
+                0.49228253978432945,
+                0.7495646271992511,
+                1.0
+              ]
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000185",
+              "name": "MS2 quantile RT fractions",
+              "description": "RT fractions at which Q1/Q2/Q3/Q4 of MS2 scan count are reached",
+              "value": [
+                0.24603138826201756,
+                0.4924661774846596,
+                0.7494798592306867,
+                1.0
+              ]
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000186",
+              "name": "MS1 TIC-change quantile ratios",
+              "description": "Log ratios of successive TIC-change quantiles",
+              "value": [
+                0.8733721932117656,
+                0.8572209345929855,
+                2.8234017915193657
+              ]
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000187",
+              "name": "MS1 TIC quantile ratios",
+              "description": "Log ratios of successive TIC quantiles",
+              "value": [
+                0.7304065732771396,
+                0.9177996369553713,
+                1.303501708601594
+              ]
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000106",
+              "name": "MS1 frequency per RT quarter",
+              "description": "Average MS1 scan frequency in each of 4 equal RT windows",
+              "value": [
+                32.644920315569486,
+                32.473405848062114,
+                31.215633086341402,
+                32.07320542387825
+              ]
+            },
+            "unit": {
+              "accession": "UO:0000106",
+              "name": "hertz"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000107",
+              "name": "MS2 frequency per RT quarter",
+              "description": "Average MS2 scan frequency in each of 4 equal RT windows",
+              "value": [
+                163.11305902496665,
+                162.25577244985294,
+                156.36907130073888,
+                160.08397979289825
+              ]
+            },
+            "unit": {
+              "accession": "UO:0000106",
+              "name": "hertz"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000116",
+              "name": "MS2 precursor intensity distribution",
+              "description": "Q1/Q2/Q3 of MS2 precursor ion intensities",
+              "value": [
+                51273.364990234375,
+                114833.103515625,
+                277013.5703125
+              ]
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000051",
+              "name": "XIC-FWHM quantiles",
+              "description": "Q1/Q2/Q3 of chromatographic peak widths (FWHM) of MS1 features detected by FeatureFindingMetabo",
+              "value": [
+                0.0405,
+                0.073,
+                0.1201
+              ]
+            },
+            "unit": {
+              "accession": "UO:0000031",
+              "name": "minute"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "MS:4000050",
+              "name": "XIC50 fraction",
+              "description": "Fraction of MS1 features whose FWHM window contains >= 50% of the total MS1 TIC",
+              "value": 0.1008
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000015",
+              "name": "MS1-to-MS2 ratio per RT quarter",
+              "description": "MS1/MS2 scan count ratio in each of 4 equal RT windows",
+              "value": [
+                0.2001402032947774,
+                0.2,
+                0.19992690058479531,
+                0.19992859692966797
+              ]
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000002",
+              "name": "MS level distribution",
+              "description": "Count of scans at each MS level",
+              "value": {
+                "1": 2246,
+                "2": 11230
+              }
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000003",
+              "name": "scan polarity distribution",
+              "description": "Count by polarity",
+              "value": {
+                "positive": 13476
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "controlledVocabularies": [
+      {
+        "name": "Proteomics Standards Initiative Mass Spectrometry Ontology",
+        "uri": "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.130/psi-ms.obo",
+        "version": "4.1.130"
+      },
+      {
+        "name": "Unit Ontology",
+        "uri": "https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo",
+        "version": "09:04:2023"
+      }
+    ]
+  }
+}
