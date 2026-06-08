@@ -1,5 +1,5 @@
 # Quality_control_pipeline
-Downloads public proteomics datasets from PRIDE, converts raw files to mzML and computes 61 ID-free QC metrics exported as mzQC v1.0.0 files.
+Downloads public proteomics datasets from PRIDE, converts raw files to mzML and computes 61 ID free QC metrics exported as mzQC v1.0.0 files.
 
 List of the ID free metrics can be found here:
 
@@ -19,8 +19,6 @@ For RAW file conversion you also need:
 ## Usage
 Run the four steps in order:
 ```bash
-python3 data.py          #Search PRIDE and save dataset list
-python3 download.py      #Download files from PRIDE
 python3 convert.py       #Convert RAW -> mzML (skip if already mzML)
 python3 QC_pipeline.py   #Compute QC metrics
 ```
@@ -30,8 +28,6 @@ python3 QC_pipeline.py   #Compute QC metrics
 ## What Each Script Does
 | Script | What it does |
 |---|---|
-| `data.py` | Queries the PRIDE REST API and saves up to 50 diverse datasets to `pride_datasets.json` |
-| `download.py` | Downloads mzML/mzXML/MGF files to `data/`, and RAW files to `data_raw/` |
 | `convert.py` | Converts Thermo RAW files to mzML using ThermoRawFileParser + Mono |
 | `QC_pipeline.py` | Reads all MS files, computes 61 QC metrics, writes `.mzQC` and `.tsv` outputs |
 
