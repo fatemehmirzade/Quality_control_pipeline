@@ -35,6 +35,8 @@ for _d in [TSV_DIR, MZQC_DIR]:
 
 MS_EXTENSIONS = {".mzml", ".mzxml", ".mgf"}
 
+_trapezoid = getattr(np, "trapezoid", None) or getattr(np, "trapz", None)
+
 
 #mzQC document builder
 
@@ -78,7 +80,7 @@ def build_mzqc(metrics, file_path, dataset):
         {"cvParameter": {"accession": "MS:1003282", "name": "QC pipeline"}}
     ]
 
-    #Scalar metrics
+    #scalar metrics
     METRIC_MAP = {
         "MS:4000059": ("MS:4000059", "number of MS1 spectra",
                        "Total number of MS1 survey scans", None, None),
@@ -115,10 +117,13 @@ def build_mzqc(metrics, file_path, dataset):
                        "UO:0000031", "minute"),
         "MS:4000194": ("MS:4000194", "DIA isolation window count",
                        "Number of distinct isolation windows", None, None),
+        "MS:4000050": ("MS:4000050", "XIC50 fraction",
+                       "Fraction of MS1 features (by FeatureFindingMetabo intensity) "
+                       "needed to account for 50% of total feature intensity",
+                       None, None),
         "NEW-001": ("NEW:0000001", "acquisition mode",
                     "DDA / DIA / MS1-only / MS2-only / DDA-MS2only / DIA-MS2only",
                     None, None),
-        #NEW-002 & NEW-003 are dict valued, handled in dict metrics loop
         "NEW-004": ("NEW:0000004", "median spectral entropy MS1",
                     "Median Shannon entropy of MS1 intensity distributions", None, None),
         "NEW-005": ("NEW:0000005", "median spectral entropy MS2",
@@ -162,6 +167,56 @@ def build_mzqc(metrics, file_path, dataset):
                     "Fraction of MS2 scans with charge state annotated", None, None),
         "NEW-024": ("NEW:0000024", "injection time annotation rate",
                     "Fraction of MS2 scans with ion injection time recorded", None, None),
+        "NEW-027": ("NEW:0000027", "MS1 positive polarity count",
+                    "Number of MS1 spectra acquired in positive ion mode", None, None),
+        "NEW-028": ("NEW:0000028", "MS1 negative polarity count",
+                    "Number of MS1 spectra acquired in negative ion mode", None, None),
+        "NEW-029": ("NEW:0000029", "MS2 positive polarity count",
+                    "Number of MS2 spectra acquired in positive ion mode", None, None),
+        "NEW-030": ("NEW:0000030", "MS2 negative polarity count",
+                    "Number of MS2 spectra acquired in negative ion mode", None, None),
+        "NEW-031": ("NEW:0000031", "MS3+ positive polarity count",
+                    "Number of MS3-or-higher spectra in positive ion mode", None, None),
+        "NEW-032": ("NEW:0000032", "MS3+ negative polarity count",
+                    "Number of MS3-or-higher spectra in negative ion mode", None, None),
+        "NEW-033": ("NEW:0000033", "contains profile spectra",
+                    "Boolean: run contains at least one profile-mode spectrum", None, None),
+        "NEW-034": ("NEW:0000034", "contains centroid spectra",
+                    "Boolean: run contains at least one centroid-mode spectrum", None, None),
+        "NEW-035": ("NEW:0000035", "MS1 minimum observed m/z",
+                    "Smallest m/z value observed across all MS1 peaks",
+                    "MS:1000040", "m/z"),
+        "NEW-036": ("NEW:0000036", "MS1 maximum observed m/z",
+                    "Largest m/z value observed across all MS1 peaks",
+                    "MS:1000040", "m/z"),
+        "NEW-037": ("NEW:0000037", "MS1 observed m/z range",
+                    "Difference between MS1 max and min observed m/z",
+                    "MS:1000040", "m/z"),
+        "NEW-038": ("NEW:0000038", "MS1 minimum acquisition m/z",
+                    "Lower bound of the configured MS1 scan window",
+                    "MS:1000040", "m/z"),
+        "NEW-039": ("NEW:0000039", "MS1 maximum acquisition m/z",
+                    "Upper bound of the configured MS1 scan window",
+                    "MS:1000040", "m/z"),
+        "NEW-040": ("NEW:0000040", "MS1 acquisition m/z range",
+                    "Width of the configured MS1 scan window (max - min)",
+                    "MS:1000040", "m/z"),
+        "NEW-041": ("NEW:0000041", "MS2 isolation window width median",
+                    "Median isolation window width (lo+hi offsets) across all MS2 scans",
+                    "UO:0000221", "dalton"),
+        "NEW-042": ("NEW:0000042", "MS2 acquisition range above precursor",
+                    "Median distance from precursor m/z to MS2 scan window upper limit",
+                    "MS:1000040", "m/z"),
+        "NEW-043": ("NEW:0000043", "number of unique target m/z values",
+                    "Count of distinct isolation window target m/z values in MS2 scans",
+                    None, None),
+        "NEW-044": ("NEW:0000044", "number of unique precursor m/z values",
+                    "Count of distinct selected ion m/z values across all MS2 scans",
+                    None, None),
+        "NEW-045": ("NEW:0000045", "corrupted scan fraction",
+                    "Fraction of scans skipped due to unreadable binary arrays. "
+                    "0.0 = no corruption; >0 = partial file, metrics from good scans only.",
+                    None, None),
     }
 
     quality_metrics = []
@@ -179,7 +234,7 @@ def build_mzqc(metrics, file_path, dataset):
             qm["unit"] = {"accession": unit_acc, "name": unit_name}
         quality_metrics.append(qm)
 
-    #List valued metrics
+    #list valued metrics
     LIST_METRICS = {
         "MS:4000061": ("MS:4000061", "MS1 density quantiles",
                        "Q1/Q2/Q3 of MS1 peak counts per scan", None, None),
@@ -225,9 +280,6 @@ def build_mzqc(metrics, file_path, dataset):
                        "Q1/Q2/Q3 of chromatographic peak widths (FWHM) of "
                        "MS1 features detected by FeatureFindingMetabo",
                        "UO:0000031", "minute"),
-        "MS:4000050": ("MS:4000050", "XIC50 fraction",
-                       "Fraction of MS1 features whose FWHM window contains "
-                       ">= 50% of the total MS1 TIC", None, None),
         "NEW-015":    ("NEW:0000015", "MS1-to-MS2 ratio per RT quarter",
                        "MS1/MS2 scan count ratio in each of 4 equal RT windows",
                        None, None),
@@ -252,7 +304,9 @@ def build_mzqc(metrics, file_path, dataset):
         "NEW-002":    ("NEW:0000002", "MS level distribution",
                        "Count of scans at each MS level", None, None),
         "NEW-003":    ("NEW:0000003", "scan polarity distribution",
-                       "Count by polarity", None, None),
+                       "Count by polarity (all MS levels)", None, None),
+        "NEW-025":    ("NEW:0000025", "MS level x polarity scan counts",
+                       "Scan counts keyed by 'MSn_polarity' (e.g. MS1_positive)", None, None),
     }
     for mkey, (acc, name, desc, unit_acc, unit_name) in DICT_METRICS.items():
         val = metrics.get(mkey)
@@ -281,6 +335,8 @@ def build_mzqc(metrics, file_path, dataset):
     }
     return mzqc_doc
 
+
+#file format helpers
 
 def open_reader(path_str):
     p = path_str.lower()
@@ -311,21 +367,19 @@ def _rt_to_minutes(val):
 
 
 def get_rt(spec, is_mgf=False, is_mzxml=False):
+    """return retention time in minutes or None if not found"""
     if is_mgf:
         params = spec.get("params", {})
-        rt_sec = params.get("rtinseconds", params.get("rt", 0))
+        rt_sec = params.get("rtinseconds", params.get("rt", None))
+        if rt_sec is None:
+            return None
         return float(rt_sec) / 60.0
-
-    #mzXML uses camelCase keys, try them first then fall through to mzML keys
     if is_mzxml:
-        for key in ["retentionTime", "retention time", "scanStartTime",
-                    "scan start time"]:
+        for key in ["retentionTime", "retention time", "scanStartTime", "scan start time"]:
             val = spec.get(key)
             if val is not None:
                 return _rt_to_minutes(val)
-        return 0.0
-
-    #mzML: top level or nested inside scanList
+        return None
     for key in ["scan start time", "retentionTime", "retention time", "scanStartTime"]:
         val = spec.get(key)
         if val is not None:
@@ -339,18 +393,16 @@ def get_rt(spec, is_mgf=False, is_mzxml=False):
                     return _rt_to_minutes(val)
     except Exception:
         pass
-    return 0.0
+    return None
 
 
 def get_arrays(spec, is_mgf=False):
     if is_mgf:
-        ints  = np.asarray(spec.get("intensity array",
-                           spec.get("intensity", [])), dtype=float)
-        mzarr = np.asarray(spec.get("m/z array",
-                           spec.get("mass array", [])), dtype=float)
+        ints  = np.asarray(spec.get("intensity array", spec.get("intensity", [])), dtype=float)
+        mzarr = np.asarray(spec.get("m/z array", spec.get("mass array", [])), dtype=float)
         return ints, mzarr
     ints  = np.asarray(spec.get("intensity array", []), dtype=float)
-    mzarr = np.asarray(spec.get("m/z array", []),       dtype=float)
+    mzarr = np.asarray(spec.get("m/z array", []), dtype=float)
     return ints, mzarr
 
 
@@ -367,17 +419,15 @@ def get_ms_level(spec, is_mgf, is_mzxml):
     if is_mgf:
         return 2
     if is_mzxml:
-        #pyteomics mzXML stores msLevel as an integer directly
         lvl = spec.get("msLevel", spec.get("ms level"))
         return int(lvl) if lvl is not None else 1
     return int(spec.get("ms level", 1))
 
 
 def get_polarity(spec, is_mgf, is_mzxml):
-    """Return 'positive', 'negative' or 'unknown' MGF files are always reported as positive (convention)"""
+    """return +, - or unknown"""
     if is_mgf:
         return "positive"
-
     if is_mzxml:
         pol = spec.get("polarity", "")
         if pol == "+":
@@ -385,18 +435,54 @@ def get_polarity(spec, is_mgf, is_mzxml):
         if pol == "-":
             return "negative"
         return "unknown"
-
-    #mzML CV term flags
     if spec.get("positive scan") is not None:
         return "positive"
     if spec.get("negative scan") is not None:
         return "negative"
     return "unknown"
 
-#used by different vendor converters
+
+#scan window helpers (mzML only)
+
+def _get_scan_window_limits(spec):
+    """return (lower limit, upper limit) from the first scanWindow or (None, None)."""
+    try:
+        scan_list = spec.get("scanList", {})
+        scans = scan_list.get("scan", [{}])
+        for s in scans:
+            win_list = s.get("scanWindowList", {})
+            windows  = win_list.get("scanWindow", [])
+            if not windows:
+                windows = win_list if isinstance(win_list, list) else []
+            for w in windows:
+                lo = w.get("scan window lower limit", w.get("scanWindowLowerLimit"))
+                hi = w.get("scan window upper limit", w.get("scanWindowUpperLimit"))
+                if lo is not None and hi is not None:
+                    return float(lo), float(hi)
+    except Exception:
+        pass
+    return None, None
+
+
+def _get_ms2_scan_window_upper(spec):
+    """return the upper limit of the MS2 scan window or None"""
+    _, hi = _get_scan_window_limits(spec)
+    return hi
+
+
+def _get_isolation_target_mz(iwin):
+    """return the isolation window target m/z or None"""
+    for key in ("isolation window target m/z", "isolationWindowTargetMZ",
+                "isolation window target mz"):
+        v = iwin.get(key)
+        if v is not None:
+            return float(v)
+    return None
+
+
+#precursor helpers
 
 def _extract_prec_mz(sel):
-    """Extract precursor m/z from a selectedIon dict, trying common key names"""
     for key in ("selected ion m/z", "selectedIonMz", "m/z", "mz"):
         v = sel.get(key)
         if v is not None:
@@ -405,7 +491,6 @@ def _extract_prec_mz(sel):
 
 
 def _extract_prec_charge(sel):
-    """Extract charge state from a selectedIon dict"""
     for key in ("charge state", "chargeState", "charge"):
         v = sel.get(key)
         if v is not None:
@@ -417,9 +502,7 @@ def _extract_prec_charge(sel):
 
 
 def _extract_prec_intensity(sel):
-    """Extract precursor intensity from a selectedIon dict"""
-    for key in ("peak intensity", "selected ion intensity",
-                "peakIntensity", "intensity"):
+    for key in ("peak intensity", "selected ion intensity", "peakIntensity", "intensity"):
         v = sel.get(key)
         if v is not None:
             return float(v)
@@ -436,8 +519,23 @@ def _extract_isolation_window(iwin):
 
 #acquisition & centroid detection
 
+def _isolation_window_stats(window_pairs):
+    """return (unique_count, width_cv) for a list of (lo, hi) window pairs."""
+    if not window_pairs:
+        return 0, 1.0
+    unique = len(set(window_pairs))
+    widths = np.array([hi - lo for lo, hi in window_pairs], dtype=float)
+    mean_w = widths.mean()
+    width_cv = float(widths.std() / mean_w) if mean_w > 0 else 1.0
+    return unique, width_cv
+
+
 def detect_mode(window_pairs, n_ms2, ms1_count=0):
-    """classify acquisition mode from window pairs and scan counts"""
+    """classify acquisition mode
+    three DIA tiers:
+    tier 1: unique<=100, width_cv<0.10, n_ms2>50, avg_samp>=5
+    tier 2: unique<=500, width_cv<0.05, n_ms2>50, avg_samp>=5
+    tier 3: stepped window swath unique<=200, avg_samp>=100, n_ms2>100"""
     if n_ms2 == 0 and ms1_count == 0:
         return "unknown"
     if n_ms2 == 0 and ms1_count > 0:
@@ -445,38 +543,38 @@ def detect_mode(window_pairs, n_ms2, ms1_count=0):
     if ms1_count == 0:
         if not window_pairs:
             return "MS2-only"
-        unique = len(set(window_pairs))
-        return "DIA-MS2only" if unique <= 100 else "DDA-MS2only"
+        unique, width_cv = _isolation_window_stats(window_pairs)
+        avg_samp = n_ms2 / unique if unique > 0 else 0
+        if unique > 0 and unique <= 200 and avg_samp >= 100 and n_ms2 > 100:
+            return "DIA-MS2only"
+        return ("DIA-MS2only"
+                if (unique <= 100 and width_cv < 0.10 and avg_samp >= 5)
+                else "DDA-MS2only")
     if not window_pairs:
         return "DDA"
 
-    unique = len(set(window_pairs))
+    unique, width_cv = _isolation_window_stats(window_pairs)
+    avg_samp = n_ms2 / unique if unique > 0 else 0
 
-    #primary criterion: <=100 unique windows and enough ms2 scans
-    if unique <= 100 and n_ms2 > 50:
+    if unique <= 100 and width_cv < 0.10 and n_ms2 > 50 and avg_samp >= 5:
         return "DIA"
-
-    if n_ms2 > 50:
-        widths = [round(hi - lo, 2) for lo, hi in window_pairs]
-        if len(widths) > 0:
-            w_arr = np.array(widths)
-            width_cv = (w_arr.std() / w_arr.mean()) if w_arr.mean() > 0 else 1.0
-            #uniform width (CV < 5%) with a plausible window count => DIA
-            if width_cv < 0.05 and unique <= 500:
-                return "DIA"
-
+    if n_ms2 > 50 and unique <= 500 and width_cv < 0.05 and avg_samp >= 5:
+        return "DIA"
+    if unique <= 200 and avg_samp >= 100 and n_ms2 > 100:
+        return "DIA"
     return "DDA"
 
 
 def detect_centroid(path_str, n_sample=30):
-    """Estimate whether spectra are centroid, profile or mixed & for dual polarity files, samples only same polarity MS1 scans to avoid
-    density mixing artifacts that cause profile data to be misclassified."""
-    densities = []
+    """return centroid, profile, mixed or unknown"""
     mgf_file   = is_mgf_path(path_str)
     mzxml_file = is_mzxml_path(path_str)
+    has_centroid_flag = False
+    has_profile_flag  = False
+    densities         = []
     try:
-        first_pol  = None
-        seen       = 0
+        first_pol = None
+        seen      = 0
         with open_reader(path_str) as reader:
             for spec in reader:
                 level = get_ms_level(spec, mgf_file, mzxml_file)
@@ -486,7 +584,12 @@ def detect_centroid(path_str, n_sample=30):
                 if first_pol is None:
                     first_pol = pol
                 if pol != first_pol:
-                    continue               
+                    continue
+                if not mgf_file and not mzxml_file:
+                    if spec.get("centroid spectrum") is not None:
+                        has_centroid_flag = True
+                    if spec.get("profile spectrum") is not None:
+                        has_profile_flag = True
                 _, mzarr = get_arrays(spec, mgf_file)
                 if len(mzarr) > 1:
                     rng = float(mzarr[-1]) - float(mzarr[0])
@@ -497,6 +600,12 @@ def detect_centroid(path_str, n_sample=30):
                     break
     except Exception:
         return "unknown"
+    if has_centroid_flag or has_profile_flag:
+        if has_centroid_flag and has_profile_flag:
+            return "mixed"
+        if has_centroid_flag:
+            return "centroid"
+        return "profile"
     if not densities:
         return "unknown"
     d = float(np.median(densities))
@@ -506,6 +615,8 @@ def detect_centroid(path_str, n_sample=30):
         return "centroid"
     return "mixed"
 
+
+#spectral / statistical helpers
 
 def _spectral_entropy(arr):
     arr = arr[arr > 0]
@@ -522,7 +633,13 @@ def safe_quantiles(arr, qs=(0.25, 0.5, 0.75)):
 
 
 def auc_trapz(tics, rts):
-    return float(np.trapz(tics, rts)) if len(rts) >= 2 else 0.0
+    """trapezoidal AUC, sorts by RT first to handle any non monotone scan order"""
+    if len(rts) < 2:
+        return 0.0
+    rts  = np.asarray(rts,  dtype=float)
+    tics = np.asarray(tics, dtype=float)
+    order = np.argsort(rts)
+    return float(_trapezoid(tics[order], rts[order]))
 
 
 def freq_max(intervals):
@@ -536,6 +653,9 @@ def freq_min(intervals):
 
 
 def tic_quantile_rt_frac(tics, rts, qs=(0.25, 0.5, 0.75, 1.0)):
+    """fraction of run duration at which cumulative TIC reaches each quantile, both arrays must be sorted by RT"""
+    tics = np.asarray(tics, dtype=float)
+    rts  = np.asarray(rts,  dtype=float)
     if len(tics) == 0 or len(rts) == 0:
         return [None] * len(qs)
     cum   = np.cumsum(tics)
@@ -551,6 +671,8 @@ def tic_quantile_rt_frac(tics, rts, qs=(0.25, 0.5, 0.75, 1.0)):
 
 
 def freq_per_quarter(rts, n=4):
+    """average scan frequency in each of n equal RT windows"""
+    rts = np.asarray(rts, dtype=float)
     if len(rts) < 2:
         return [None] * n
     t0, t1 = float(rts[0]), float(rts[-1])
@@ -561,7 +683,7 @@ def freq_per_quarter(rts, n=4):
     for i in range(n):
         lo_b = t0 + i * dur
         hi_b = t0 + (i + 1) * dur
-        if i == n - 1:  
+        if i == n - 1:
             count = int(((rts >= lo_b) & (rts <= hi_b)).sum())
         else:
             count = int(((rts >= lo_b) & (rts < hi_b)).sum())
@@ -570,6 +692,9 @@ def freq_per_quarter(rts, n=4):
 
 
 def signal_jumps(tics, factor=10):
+    """count 10x TIC jumps/falls. Returns (None, None) for <2 elements"""
+    if len(tics) < 2:
+        return None, None
     j = f = 0
     for i in range(len(tics) - 1):
         if tics[i] > 0:
@@ -583,8 +708,12 @@ def signal_jumps(tics, factor=10):
 
 def coeff_variation(arr):
     arr = np.asarray(arr, dtype=float)
-    mu  = arr.mean()
-    return float(arr.std() / mu) if len(arr) > 0 and mu != 0 else None
+    if len(arr) == 0:
+        return None
+    mu = arr.mean()
+    if mu == 0:
+        return None
+    return float(arr.std() / abs(mu))
 
 
 def gini_coeff(arr):
@@ -627,6 +756,7 @@ def chromatography_duration(tics, rts, thr_frac=0.01):
         return None
     active = rts[tics > mx * thr_frac]
     return float(active[-1] - active[0]) if len(active) >= 2 else None
+
 
 #DIA window metrics
 
@@ -720,36 +850,29 @@ def compute_dia_metrics(dia_windows):
         "NEW-020":    frag_uni,
     }
 
-#XIC feature detection 
+
+#XIC feature detection
 
 def compute_xic_metrics(path_str, ms2_count=0):
-    """chromatographic feature detection on MS1 scans via pyopenms.
-    For dual polarity files, runs feature detection on the dominant polarity
-    only to avoid FWHM underestimation from polarity-switching scan gaps."""
+    """chromatographic feature detection on ms1 scans via pyopenms for dual polarity files runs on the dominant polarity only"""
     null = {"MS:4000051": None, "MS:4000050": None}
-
     if not PYOPENMS_AVAILABLE:
         return null
     if ms2_count == 0:
         return null
     if Path(path_str).suffix.lower() != ".mzml":
         return null
-
     try:
         oms = _oms
-
         exp_full = oms.MSExperiment()
         oms.MzMLFile().load(path_str, exp_full)
-
         pol_counts = {}
         for spec in exp_full:
             if spec.getMSLevel() == 1 and spec.size() > 0:
                 p = spec.getInstrumentSettings().getPolarity()
                 pol_counts[p] = pol_counts.get(p, 0) + 1
-
         is_dual_polarity = len(pol_counts) > 1
         dominant_pol     = max(pol_counts, key=pol_counts.get) if pol_counts else None
-
         exp = oms.MSExperiment()
         for spec in exp_full:
             if spec.getMSLevel() != 1 or spec.size() == 0:
@@ -758,18 +881,13 @@ def compute_xic_metrics(path_str, ms2_count=0):
                 if spec.getInstrumentSettings().getPolarity() != dominant_pol:
                     continue
             exp.addSpectrum(spec)
-
         if exp.getNrSpectra() < 10:
             return null
-
         exp.sortSpectra()
-
         rts_s  = np.array([s.getRT() for s in exp])
         rt_dur = rts_s[-1] - rts_s[0]
         if rt_dur <= 0:
             return null
-
-        #mass trace detection
         mtd = oms.MassTraceDetection()
         p   = mtd.getDefaults()
         p.setValue("mass_error_ppm",      10.0)
@@ -781,8 +899,6 @@ def compute_xic_metrics(path_str, ms2_count=0):
         mtd.run(exp, traces, 0)
         if not traces:
             return null
-
-        #elution peak detection
         epd = oms.ElutionPeakDetection()
         p2  = epd.getDefaults()
         p2.setValue("width_filtering", "auto")
@@ -793,8 +909,6 @@ def compute_xic_metrics(path_str, ms2_count=0):
         epd.detectPeaks(traces, split)
         if not split:
             return null
-
-        #feature finding
         ffm = oms.FeatureFindingMetabo()
         p3  = ffm.getDefaults()
         p3.setValue("isotope_filtering_model", "none")
@@ -804,11 +918,8 @@ def compute_xic_metrics(path_str, ms2_count=0):
         feat_map  = oms.FeatureMap()
         chrom_out = []
         ffm.run(split, feat_map, chrom_out)
-
         if feat_map.size() == 0:
             return null
-
-        #FWHM values
         fwhm_s = []
         for i in range(feat_map.size()):
             f = feat_map[i]
@@ -816,20 +927,15 @@ def compute_xic_metrics(path_str, ms2_count=0):
                 v = float(f.getMetaValue("FWHM"))
                 if v > 0:
                     fwhm_s.append(v)
-
         if len(fwhm_s) < 3:
             return null
-
         fwhm_min = np.array(fwhm_s) / 60.0
-        xic_fwhm = [round(float(np.quantile(fwhm_min, q)), 4)
-                    for q in (0.25, 0.50, 0.75)]
-
+        xic_fwhm = [round(float(np.quantile(fwhm_min, q)), 4) for q in (0.25, 0.50, 0.75)]
         feat_intensities = []
         for i in range(feat_map.size()):
             intensity = float(feat_map[i].getIntensity())
             if intensity > 0:
                 feat_intensities.append(intensity)
-
         xic50 = None
         if feat_intensities:
             feat_intensities_sorted = sorted(feat_intensities, reverse=True)
@@ -843,42 +949,87 @@ def compute_xic_metrics(path_str, ms2_count=0):
                     if cumsum / total_feat_intensity >= 0.50:
                         break
                 xic50 = round(count_needed / len(feat_intensities), 4)
-
         return {"MS:4000051": xic_fwhm, "MS:4000050": xic50}
-
     except Exception:
         return null
 
 
+#main metric computation
+
 def compute_all_metrics(mzml_path):
-    path_str  = str(mzml_path)
-    mgf_file  = is_mgf_path(path_str)
+    path_str   = str(mzml_path)
+    mgf_file   = is_mgf_path(path_str)
     mzxml_file = is_mzxml_path(path_str)
 
-    ms1_tics, ms1_rts, ms1_peaks = [], [], []
-    ms2_tics, ms2_rts, ms2_peaks = [], [], []
-    ms1_entropy_vals             = []
-    ms2_entropy_vals             = []
-    ms2_prec_mz                  = []
-    ms2_prec_int                 = []
-    ms2_charge_list              = []
-    polarities                   = []
-    ms_levels                    = []
-    window_pairs                 = []
-    dia_windows                  = {}
+    ms1_tics_all, ms1_rts_all, ms1_peaks_all = [], [], []  
+    ms2_tics_all, ms2_rts_all, ms2_peaks_all = [], [], []  
+    ms1_entropy_vals = []
+    ms2_entropy_vals = []
+    ms2_prec_mz      = []
+    ms2_target_mz    = []
+    ms2_prec_int     = []
+    ms2_charge_list  = []
+    polarities       = []
+    ms_levels        = []
+    window_pairs     = []
+    dia_windows      = {}
 
-    ms1_intervals, ms2_intervals = [], []
-    ms1_tics_by_pol              = {}   #pol -> list of (rt, tic)
-    prev_ms1_rt = prev_ms2_rt    = None
+    ms1_intervals_by_pol = {}
+    ms2_intervals_by_pol = {}
+    ms1_tics_by_pol      = {}
+    prev_ms1_rt_by_pol   = {}
+    prev_ms2_rt_by_pol   = {}
 
-    ms1_empty = ms2_empty        = 0
-    ms2_total                    = 0
-    charge_annotated             = 0
-    it_annotated                 = 0
-    meta_complete                = 0
-    zero_peaks = total_peaks     = 0
+    ms1_empty = ms2_empty    = 0
+    ms2_total                = 0
+    charge_annotated         = 0
+    it_annotated             = 0
+    meta_complete            = 0
+    zero_peaks = total_peaks = 0
+    corrupted_scans          = 0
+    total_scans_seen         = 0
+
     all_mz_min = float("inf")
     all_mz_max = float("-inf")
+    ms1_mz_min = float("inf")
+    ms1_mz_max = float("-inf")
+
+    ms1_acq_win_min_vals = []
+    ms1_acq_win_max_vals = []
+    ms2_scan_win_upper   = []
+    level_pol_counts     = {}
+
+    #lxml pre scan for injection-time userParam (Thermo mzML)
+    _it_index_set: set = set()
+    if not mgf_file and not mzxml_file:
+        try:
+            import re as _re
+            from lxml import etree as _etree
+            with open(path_str, 'rb') as _fh:
+                _head = _fh.read(2048).decode('utf-8', errors='replace')
+            _ns_m = _re.search(r'<mzML[^>]*xmlns="([^"]*)"', _head)
+            _NS   = _ns_m.group(1) if _ns_m else ''
+            _tag  = f'{{{_NS}}}spectrum' if _NS else 'spectrum'
+            _ctx  = _etree.iterparse(path_str, events=('end',), tag=_tag)
+            for _, _el in _ctx:
+                _idx = _el.get('index')
+                if _idx is not None:
+                    _has_it = False
+                    for _child in _el.iter():
+                        _lname = _etree.QName(_child.tag).localname
+                        if _lname == 'cvParam':
+                            if _child.get('accession') == 'MS:1000927':
+                                _has_it = True
+                                break
+                        elif _lname == 'userParam':
+                            if 'inject' in _child.get('name', '').lower():
+                                _has_it = True
+                                break
+                    if _has_it:
+                        _it_index_set.add(_idx)
+                _el.clear()
+        except Exception:
+            pass
 
     import io, contextlib
     try:
@@ -887,49 +1038,80 @@ def compute_all_metrics(mzml_path):
             warnings.simplefilter("ignore")
             with open_reader(path_str) as reader:
                 for spec in reader:
+                    total_scans_seen += 1
                     level = get_ms_level(spec, mgf_file, mzxml_file)
                     rt    = get_rt(spec, mgf_file, mzxml_file)
-                    ints, mzarr = get_arrays(spec, mgf_file)
-                    tic   = get_tic(spec, ints, mgf_file)
-                    npk   = len(ints)
+                    rt_valid = rt is not None
+                    if not rt_valid:
+                        rt = 0.0
+
+                    try:
+                        ints, mzarr = get_arrays(spec, mgf_file)
+                    except Exception:
+                        corrupted_scans += 1
+                        continue
+
+                    tic  = get_tic(spec, ints, mgf_file)
+                    npk  = len(ints)
 
                     ms_levels.append(level)
-
                     pol = get_polarity(spec, mgf_file, mzxml_file)
                     polarities.append(pol)
+
+                    lbl = "MS1" if level == 1 else ("MS2" if level == 2 else "MS3+")
+                    key_lp = (lbl, pol)
+                    level_pol_counts[key_lp] = level_pol_counts.get(key_lp, 0) + 1
 
                     if npk > 0:
                         zero_peaks  += int((ints == 0).sum())
                         total_peaks += npk
-
                     if len(mzarr) > 0:
                         all_mz_min = min(all_mz_min, float(mzarr.min()))
                         all_mz_max = max(all_mz_max, float(mzarr.max()))
 
                     if level == 1:
-                        ms1_tics.append(tic)
-                        ms1_rts.append(rt)
-                        ms1_peaks.append(npk)
+                        #track for entropy and empty count
                         ms1_entropy_vals.append(_spectral_entropy(ints))
                         if tic == 0:
                             ms1_empty += 1
-                        if prev_ms1_rt is not None:
-                            ms1_intervals.append(rt - prev_ms1_rt)
-                        prev_ms1_rt = rt
-                        #accumulate per-polarity for CV / signal jump computation
+
+                        #append to RT parallel arrays when RT is valid
+                        if rt_valid:
+                            ms1_tics_all.append(tic)
+                            ms1_rts_all.append(rt)
+                            ms1_peaks_all.append(npk)
+                            prev = prev_ms1_rt_by_pol.get(pol)
+                            if prev is not None:
+                                ms1_intervals_by_pol.setdefault(pol, []).append(rt - prev)
+                            prev_ms1_rt_by_pol[pol] = rt
+
+                        #per polarity TIC for CV/Gini: include even without RT
                         ms1_tics_by_pol.setdefault(pol, []).append((rt, tic))
 
+                        if len(mzarr) > 0:
+                            ms1_mz_min = min(ms1_mz_min, float(mzarr.min()))
+                            ms1_mz_max = max(ms1_mz_max, float(mzarr.max()))
+                        if not mgf_file and not mzxml_file:
+                            lo_win, hi_win = _get_scan_window_limits(spec)
+                            if lo_win is not None:
+                                ms1_acq_win_min_vals.append(lo_win)
+                            if hi_win is not None:
+                                ms1_acq_win_max_vals.append(hi_win)
+
                     elif level == 2:
-                        ms2_tics.append(tic)
-                        ms2_rts.append(rt)
-                        ms2_peaks.append(npk)
                         ms2_entropy_vals.append(_spectral_entropy(ints))
                         if tic == 0:
                             ms2_empty += 1
                         ms2_total += 1
-                        if prev_ms2_rt is not None:
-                            ms2_intervals.append(rt - prev_ms2_rt)
-                        prev_ms2_rt = rt
+
+                        if rt_valid:
+                            ms2_tics_all.append(tic)
+                            ms2_rts_all.append(rt)
+                            ms2_peaks_all.append(npk)
+                            prev = prev_ms2_rt_by_pol.get(pol)
+                            if prev is not None:
+                                ms2_intervals_by_pol.setdefault(pol, []).append(rt - prev)
+                            prev_ms2_rt_by_pol[pol] = rt
 
                         if not mgf_file:
                             try:
@@ -945,6 +1127,11 @@ def compute_all_metrics(mzml_path):
 
                                 if pmz is not None:
                                     ms2_prec_mz.append(pmz)
+                                tmz = _get_isolation_target_mz(iwin)
+                                if tmz is not None:
+                                    ms2_target_mz.append(tmz)
+                                elif pmz is not None:
+                                    ms2_target_mz.append(pmz)
                                 if pch is not None:
                                     ms2_charge_list.append(pch)
                                     charge_annotated += 1
@@ -952,8 +1139,9 @@ def compute_all_metrics(mzml_path):
                                     ms2_prec_int.append(pi)
                                 if lo is not None and hi is not None and pmz is not None:
                                     lo_f, hi_f = float(lo), float(hi)
+                                    center = tmz if tmz is not None else pmz
                                     wp   = (round(pmz - lo_f, 3), round(pmz + hi_f, 3))
-                                    wkey = (round(pmz - lo_f, 2), round(pmz + hi_f, 2))
+                                    wkey = (round(center - lo_f, 2), round(center + hi_f, 2))
                                     window_pairs.append(wp)
                                     if wkey not in dia_windows:
                                         dia_windows[wkey] = {"tics": [], "rts": [], "peaks": []}
@@ -964,10 +1152,20 @@ def compute_all_metrics(mzml_path):
                                 if (pmz is not None and lo is not None
                                         and hi is not None and pol_ok and len(act) > 0):
                                     meta_complete += 1
-                                it_val = (spec.get("ion injection time") or
-                                          spec.get("ionInjectionTime"))
-                                if it_val is not None:
+                                if mzxml_file:
+                                    _scan0 = (spec.get("scanList", {}).get("scan", [{}])[0])
+                                    _it_found = bool(
+                                        _scan0.get("ion injection time") or
+                                        spec.get("injectionTime") or
+                                        spec.get("ionInjectionTime"))
+                                else:
+                                    _it_found = (str(spec.get("index", "")) in _it_index_set)
+                                if _it_found:
                                     it_annotated += 1
+                                if not mzxml_file:
+                                    sw_hi = _get_ms2_scan_window_upper(spec)
+                                    if sw_hi is not None and pmz is not None:
+                                        ms2_scan_win_upper.append(sw_hi - pmz)
                             except (KeyError, IndexError):
                                 pass
                         else:
@@ -976,6 +1174,7 @@ def compute_all_metrics(mzml_path):
                             if pm is not None:
                                 pmz_val = pm[0] if isinstance(pm, (list, tuple)) else float(pm)
                                 ms2_prec_mz.append(float(pmz_val))
+                                ms2_target_mz.append(float(pmz_val))
                             ch = str(params.get("charge", "")).replace("+", "").replace("-", "")
                             if ch.isdigit():
                                 ms2_charge_list.append(int(ch))
@@ -984,22 +1183,56 @@ def compute_all_metrics(mzml_path):
     except Exception as e:
         return {"_error": f"{type(e).__name__}: {e}"}
 
-    ms1_tics = np.array(ms1_tics, dtype=float)
-    ms2_tics = np.array(ms2_tics, dtype=float)
-    ms1_rts  = np.array(ms1_rts,  dtype=float)
-    ms2_rts  = np.array(ms2_rts,  dtype=float)
+    #convert lists to numpy arrays and sort by Rt
+    ms1_tics  = np.array(ms1_tics_all,  dtype=float)
+    ms1_rts   = np.array(ms1_rts_all,   dtype=float)
+    ms1_peaks = np.array(ms1_peaks_all, dtype=float)
+    ms2_tics  = np.array(ms2_tics_all,  dtype=float)
+    ms2_rts   = np.array(ms2_rts_all,   dtype=float)
+    ms2_peaks = np.array(ms2_peaks_all, dtype=float)
+
+    if len(ms1_rts) > 0:
+        ms1_sort  = np.argsort(ms1_rts)
+        ms1_rts   = ms1_rts[ms1_sort]
+        ms1_tics  = ms1_tics[ms1_sort]
+        ms1_peaks = ms1_peaks[ms1_sort]
+
+    if len(ms2_rts) > 0:
+        ms2_sort  = np.argsort(ms2_rts)
+        ms2_rts   = ms2_rts[ms2_sort]
+        ms2_tics  = ms2_tics[ms2_sort]
+        ms2_peaks = ms2_peaks[ms2_sort]
+
     all_tics = (np.concatenate([ms1_tics, ms2_tics])
                 if len(ms1_tics) + len(ms2_tics) > 0 else np.array([]))
     all_rts  = (np.concatenate([ms1_rts, ms2_rts])
                 if len(ms1_rts) + len(ms2_rts) > 0 else np.array([]))
 
+    #dominant polarity TIC for CV / Gini / signal jumps
     is_dual_pol = len(ms1_tics_by_pol) > 1
     if is_dual_pol:
-        dom_pol      = max(ms1_tics_by_pol, key=lambda p: len(ms1_tics_by_pol[p]))
-        pol_pairs    = sorted(ms1_tics_by_pol[dom_pol], key=lambda x: x[0])
-        tics_for_cv  = np.array([t for _, t in pol_pairs], dtype=float)
+        dom_pol     = max(ms1_tics_by_pol, key=lambda p: len(ms1_tics_by_pol[p]))
+        pol_pairs   = sorted(ms1_tics_by_pol[dom_pol], key=lambda x: x[0])
+        tics_for_cv = np.array([t for _, t in pol_pairs], dtype=float)
     else:
-        tics_for_cv  = ms1_tics
+        tics_for_cv = ms1_tics
+
+    #dominant polarity intervals for frequency metrics
+    if is_dual_pol:
+        ms1_intervals = ms1_intervals_by_pol.get(dom_pol, [])
+    else:
+        ms1_intervals = []
+        for v in ms1_intervals_by_pol.values():
+            ms1_intervals.extend(v)
+
+    ms2_pol_counts = {pol: len(intervals) for pol, intervals in ms2_intervals_by_pol.items()}
+    if len(ms2_pol_counts) > 1:
+        dom_ms2_pol   = max(ms2_pol_counts, key=ms2_pol_counts.get)
+        ms2_intervals = ms2_intervals_by_pol.get(dom_ms2_pol, [])
+    else:
+        ms2_intervals = []
+        for v in ms2_intervals_by_pol.values():
+            ms2_intervals.extend(v)
 
     if len(tics_for_cv) >= 2:
         jumps, falls = signal_jumps(tics_for_cv)
@@ -1044,7 +1277,7 @@ def compute_all_metrics(mzml_path):
             ms1_ms2_ratio = []
             for i in range(4):
                 lo_b, hi_b = t0 + i * dur, t0 + (i + 1) * dur
-                if i == 3:  
+                if i == 3:
                     n1 = int(((ms1_rts >= lo_b) & (ms1_rts <= hi_b)).sum())
                     n2 = int(((ms2_rts >= lo_b) & (ms2_rts <= hi_b)).sum())
                 else:
@@ -1053,28 +1286,67 @@ def compute_all_metrics(mzml_path):
                 ms1_ms2_ratio.append(float(n1 / n2) if n2 > 0 else None)
 
     redundancy = None
-    if mode == "DDA" and ms2_prec_mz and ms2_total > 0:
-        mz_arr  = np.array(ms2_prec_mz)
+    if mode in ("DDA", "DDA-MS2only") and ms2_prec_mz and ms2_total > 0:
+        mz_arr = np.array(ms2_prec_mz)
         if len(mz_arr) > 1:
-            order    = np.argsort(mz_arr)
-            sorted_mz = mz_arr[order]
-            n         = len(sorted_mz)
+            sorted_mz = np.sort(mz_arr)
             lo_idx    = np.searchsorted(sorted_mz, sorted_mz - 0.01, side='left')
             hi_idx    = np.searchsorted(sorted_mz, sorted_mz + 0.01, side='right')
-            #window size including self; match exists when window has > 1 element
             has_match = (hi_idx - lo_idx) > 1
             redundant = int(has_match.sum())
         else:
             redundant = 0
         redundancy = float(redundant / ms2_total)
 
+    def _lp(lbl, pol):
+        return level_pol_counts.get((lbl, pol), 0)
+
+    ms1_pos_count  = _lp("MS1", "positive")
+    ms1_neg_count  = _lp("MS1", "negative")
+    ms2_pos_count  = _lp("MS2", "positive")
+    ms2_neg_count  = _lp("MS2", "negative")
+    ms3p_pos_count = _lp("MS3+", "positive")
+    ms3p_neg_count = _lp("MS3+", "negative")
+
+    level_pol_dict = {f"{lbl}_{pol}": cnt
+                      for (lbl, pol), cnt in sorted(level_pol_counts.items())}
+
+    centroid_str      = detect_centroid(path_str)
+    contains_centroid = centroid_str in ("centroid", "mixed")
+    contains_profile  = centroid_str in ("profile",  "mixed")
+
+    ms1_obs_min   = float(ms1_mz_min) if ms1_mz_min != float("inf") else None
+    ms1_obs_max   = float(ms1_mz_max) if ms1_mz_max != float("-inf") else None
+    ms1_obs_range = (float(ms1_obs_max - ms1_obs_min)
+                     if ms1_obs_min is not None and ms1_obs_max is not None else None)
+
+    ms1_acq_min   = float(np.median(ms1_acq_win_min_vals)) if ms1_acq_win_min_vals else None
+    ms1_acq_max   = float(np.median(ms1_acq_win_max_vals)) if ms1_acq_win_max_vals else None
+    ms1_acq_range = (float(ms1_acq_max - ms1_acq_min)
+                     if ms1_acq_min is not None and ms1_acq_max is not None else None)
+
+    ms2_iso_width_median = float(np.median(iso_widths)) if iso_widths else None
+    ms2_acq_above_prec   = float(np.median(ms2_scan_win_upper)) if ms2_scan_win_upper else None
+
+    n_unique_target_mz    = len(set(round(v, 3) for v in ms2_target_mz)) if ms2_target_mz else 0
+    n_unique_precursor_mz = len(set(round(v, 3) for v in ms2_prec_mz))   if ms2_prec_mz   else 0
+
+    #combined sorted arrays for quantile functions
+    if len(all_rts) > 0:
+        _sort_idx        = np.argsort(all_rts)
+        _all_rts_sorted  = all_rts[_sort_idx]
+        _all_tics_sorted = all_tics[_sort_idx]
+    else:
+        _all_rts_sorted  = all_rts
+        _all_tics_sorted = all_tics
+
+    #assemble metric dict
     m = {}
     m["MS:4000059"] = int(len(ms1_tics))
     m["MS:4000060"] = int(len(ms2_tics))
     m["MS:4000067"] = run_duration
     m["MS:4000053"] = chromatography_duration(ms1_tics, ms1_rts)
-    m["MS:4000069"] = ([all_mz_min, all_mz_max]
-                       if all_mz_min != float("inf") else None)
+    m["MS:4000069"] = ([all_mz_min, all_mz_max] if all_mz_min != float("inf") else None)
     m["MS:4000070"] = rt_range
     m["MS:4000065"] = freq_max(ms1_intervals)
     m["MS:4000066"] = freq_max(ms2_intervals)
@@ -1085,24 +1357,12 @@ def compute_all_metrics(mzml_path):
     m["MS:4000029"] = auc_ms1
     m["MS:4000030"] = auc_ms2
     m["MS:4000031"] = (float(auc_ms1 / auc_ms2)
-                       if auc_ms1 is not None and auc_ms2 and auc_ms2 > 0
-                       else None)
-    m["MS:4000186"] = tic_change_quantile_ratios(tics_for_cv)  # within polarity
-    m["MS:4000187"] = tic_quantile_ratios(tics_for_cv)        
-    #sort all rts/all_tics by time before computing the combined TIC RT profile
-    if len(all_rts) > 0:
-        _sort_idx = np.argsort(all_rts)
-        _all_rts_sorted  = all_rts[_sort_idx]
-        _all_tics_sorted = all_tics[_sort_idx]
-    else:
-        _all_rts_sorted = all_rts
-        _all_tics_sorted = all_tics
+                       if auc_ms1 is not None and auc_ms2 and auc_ms2 > 0 else None)
+    m["MS:4000186"] = tic_change_quantile_ratios(tics_for_cv)
+    m["MS:4000187"] = tic_quantile_ratios(tics_for_cv)
     m["MS:4000183"] = tic_quantile_rt_frac(_all_tics_sorted, _all_rts_sorted)
-    #sort ms1_rts and ms2 rts before computing scan density RT fractions;
-    _ms1_rts_sorted = np.sort(ms1_rts) if len(ms1_rts) > 0 else ms1_rts
-    _ms2_rts_sorted = np.sort(ms2_rts) if len(ms2_rts) > 0 else ms2_rts
-    m["MS:4000184"] = tic_quantile_rt_frac(np.ones(len(_ms1_rts_sorted)), _ms1_rts_sorted)
-    m["MS:4000185"] = tic_quantile_rt_frac(np.ones(len(_ms2_rts_sorted)), _ms2_rts_sorted)
+    m["MS:4000184"] = tic_quantile_rt_frac(np.ones(len(ms1_rts)), ms1_rts)
+    m["MS:4000185"] = tic_quantile_rt_frac(np.ones(len(ms2_rts)), ms2_rts)
     m["MS:4000061"] = safe_quantiles(ms1_peaks)
     m["MS:4000062"] = safe_quantiles(ms2_peaks)
     m["MS:4000097"] = int(jumps) if jumps is not None else None
@@ -1113,32 +1373,51 @@ def compute_all_metrics(mzml_path):
     m["MS:4000116"] = safe_quantiles(ms2_prec_int)
 
     xic = compute_xic_metrics(path_str, ms2_count=ms2_total)
-    m["MS:4000051"] = xic["MS:4000051"]  
-    m["MS:4000050"] = xic["MS:4000050"]  
+    m["MS:4000051"] = xic["MS:4000051"]
+    m["MS:4000050"] = xic["MS:4000050"]
 
     m["NEW-001"] = mode
     m["NEW-002"] = dict(Counter(ms_levels))
     m["NEW-003"] = dict(Counter(polarities))
-    m["NEW-004"] = (float(np.median(ms1_entropy_vals))
-                    if ms1_entropy_vals else None)
-    m["NEW-005"] = (float(np.median(ms2_entropy_vals))
-                    if ms2_entropy_vals else None)
+    m["NEW-004"] = float(np.median(ms1_entropy_vals)) if ms1_entropy_vals else None
+    m["NEW-005"] = float(np.median(ms2_entropy_vals)) if ms2_entropy_vals else None
     m["NEW-006"] = (float(sum(1 for p in ms2_peaks if p < 10) / len(ms2_peaks))
-                    if ms2_peaks else None)
+                    if len(ms2_peaks) > 0 else None)
     m["NEW-007"] = dyn_range
     m["NEW-008"] = float(zero_peaks / total_peaks) if total_peaks > 0 else None
-    m["NEW-009"] = coeff_variation(tics_for_cv)    
-    m["NEW-010"] = gini_coeff(tics_for_cv)         
+    m["NEW-009"] = coeff_variation(tics_for_cv)
+    m["NEW-010"] = gini_coeff(tics_for_cv)
     m["NEW-011"] = baseline
     m["NEW-012"] = sbr
     m["NEW-013"] = safe_quantiles(iso_widths) if iso_widths else None
     m["NEW-014"] = redundancy
     m["NEW-015"] = ms1_ms2_ratio
     m["NEW-021"] = float(meta_complete / ms2_total) if ms2_total > 0 else None
-    m["NEW-022"] = detect_centroid(path_str)
+    m["NEW-022"] = centroid_str
     m["NEW-023"] = float(charge_annotated / ms2_total) if ms2_total > 0 else None
     m["NEW-024"] = (float(it_annotated / ms2_total)
                     if ms2_total > 0 and not mgf_file else None)
+    m["NEW-025"] = level_pol_dict if level_pol_dict else None
+    m["NEW-027"] = ms1_pos_count
+    m["NEW-028"] = ms1_neg_count
+    m["NEW-029"] = ms2_pos_count
+    m["NEW-030"] = ms2_neg_count
+    m["NEW-031"] = ms3p_pos_count
+    m["NEW-032"] = ms3p_neg_count
+    m["NEW-033"] = contains_profile
+    m["NEW-034"] = contains_centroid
+    m["NEW-035"] = ms1_obs_min
+    m["NEW-036"] = ms1_obs_max
+    m["NEW-037"] = ms1_obs_range
+    m["NEW-038"] = ms1_acq_min
+    m["NEW-039"] = ms1_acq_max
+    m["NEW-040"] = ms1_acq_range
+    m["NEW-041"] = ms2_iso_width_median
+    m["NEW-042"] = ms2_acq_above_prec
+    m["NEW-043"] = n_unique_target_mz
+    m["NEW-044"] = n_unique_precursor_mz
+    m["NEW-045"] = (round(float(corrupted_scans) / total_scans_seen, 6)
+                    if total_scans_seen > 0 else 0.0)
 
     if mode in ("DIA", "DIA-MS2only"):
         m.update(compute_dia_metrics(dia_windows))
@@ -1151,18 +1430,21 @@ def compute_all_metrics(mzml_path):
     return m
 
 
+
 def flatten(v, prefix=""):
     out = {}
     if isinstance(v, dict):
         if prefix:
-            out[prefix] = str(v)
+            out[prefix] = str(v)         
         for k, val in v.items():
-            out.update(flatten(val, f"{prefix}.{k}" if prefix else str(k)))
+            sub = f"{prefix}.{k}" if prefix else str(k)
+            out.update(flatten(val, sub))
     elif isinstance(v, list):
         if prefix:
-            out[prefix] = str(v)
+            out[prefix] = str(v)           
         for i, val in enumerate(v):
-            out.update(flatten(val, f"{prefix}[{i}]" if prefix else f"[{i}]"))
+            sub = f"{prefix}[{i}]" if prefix else f"[{i}]"
+            out.update(flatten(val, sub))
     else:
         out[prefix] = v
     return out
@@ -1177,6 +1459,7 @@ def sfmt(v, decimals=3):
         return str(v)[:12]
 
 
+#main
 
 def main():
     raw_files = []
@@ -1184,7 +1467,8 @@ def main():
         raw_files.extend(DATA_DIR.rglob(ext))
     raw_files = sorted(set(raw_files))
 
-    EXT_RANK = {".mgf": 0, ".mzml": 1, ".mzxml": 2}
+    #mzML preferred over mzXML preferred over MGF
+    EXT_RANK = {".mzml": 0, ".mzxml": 1, ".mgf": 2}
     best = {}
     for f in raw_files:
         key  = (str(f.parent), f.stem.lower())
@@ -1198,8 +1482,7 @@ def main():
     skipped_folders = [d for d in all_folders if d not in active_datasets]
 
     print(f"{'='*65}")
-    print(f"QC Pipeline  {len(ms_files)} files across "
-          f"{len(active_datasets)} datasets")
+    print(f"QC Pipeline  {len(ms_files)} files across {len(active_datasets)} datasets")
     if skipped_folders:
         print(f"Skipped (no MS files): {', '.join(skipped_folders)}")
     print(f"{'='*65}\n")
@@ -1219,8 +1502,7 @@ def main():
 
         if "_error" in metrics:
             print(f"  ERROR: {metrics['_error']}\n")
-            errors.append({"file": fname, "dataset": dataset,
-                           "error": metrics["_error"]})
+            errors.append({"file": fname, "dataset": dataset, "error": metrics["_error"]})
             continue
 
         metrics["_file"]    = fname
@@ -1233,8 +1515,13 @@ def main():
         mode = metrics.get("NEW-001", "?")
         print(f"  Mode          : {mode}")
         print(f"  Centroid      : {metrics.get('NEW-022', '?')}")
+        print(f"  Profile flag  : {metrics.get('NEW-033', '?')}")
+        print(f"  Centroid flag : {metrics.get('NEW-034', '?')}")
         print(f"  MS1 scans     : {metrics.get('MS:4000059', '?')}")
+        print(f"  MS1 pos/neg   : {metrics.get('NEW-027', 0)} / {metrics.get('NEW-028', 0)}")
         print(f"  MS2 scans     : {metrics.get('MS:4000060', '?')}")
+        print(f"  MS2 pos/neg   : {metrics.get('NEW-029', 0)} / {metrics.get('NEW-030', 0)}")
+        print(f"  MS3+ pos/neg  : {metrics.get('NEW-031', 0)} / {metrics.get('NEW-032', 0)}")
         print(f"  Run duration  : {sfmt(metrics.get('MS:4000067'), 1)} min")
         print(f"  Chrom dur     : {sfmt(metrics.get('MS:4000053'), 1)} min")
         print(f"  AUC MS1       : {sfmt(metrics.get('MS:4000029'), 0)}")
@@ -1249,6 +1536,12 @@ def main():
         print(f"  Zero peaks%   : {sfmt(metrics.get('NEW-008'))}")
         print(f"  Baseline      : {sfmt(metrics.get('NEW-011'), 0)}")
         print(f"  SBR           : {sfmt(metrics.get('NEW-012'), 1)}")
+        print(f"  MS1 obs mz    : {sfmt(metrics.get('NEW-035'), 1)} - {sfmt(metrics.get('NEW-036'), 1)}")
+        print(f"  MS1 acq mz    : {sfmt(metrics.get('NEW-038'), 1)} - {sfmt(metrics.get('NEW-039'), 1)}")
+        print(f"  MS2 iso width : {sfmt(metrics.get('NEW-041'))}")
+        print(f"  MS2 acq above : {sfmt(metrics.get('NEW-042'))}")
+        print(f"  Unique tgt mz : {metrics.get('NEW-043', 'N/A')}")
+        print(f"  Unique prec mz: {metrics.get('NEW-044', 'N/A')}")
         print(f"  Metadata ok   : {sfmt(metrics.get('NEW-021'))}")
         print(f"  Charge annot  : {sfmt(metrics.get('NEW-023'))}")
         print(f"  IT annot      : {sfmt(metrics.get('NEW-024'))}")
@@ -1270,9 +1563,11 @@ def main():
             xic_fwhm_q2 = v51[1]
         print(f"  XIC-FWHM Q2   : {sfmt(xic_fwhm_q2, 3)} min")
         print(f"  XIC50         : {sfmt(metrics.get('MS:4000050'))}")
+        _n_corrupt = metrics.get("NEW-045", 0.0) or 0.0
+        if _n_corrupt > 0:
+            print(f"  Corrupt scans : {_n_corrupt:.4f} ({_n_corrupt*100:.1f}%) — partial metrics")
         print(f"  Time          : {elapsed:.1f}s\n")
 
-        #Write mzQC
         mzqc_doc  = build_mzqc(metrics, str(f), dataset)
         mzqc_path = MZQC_DIR / dataset / f"{f.stem}.mzQC"
         mzqc_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1280,8 +1575,7 @@ def main():
             json.dump(mzqc_doc, jf, indent=2, default=str)
 
     print(f"\n{'='*65}")
-    print(f"Processed {len(all_results)}/{len(ms_files)} files  "
-          f"({len(errors)} errors)")
+    print(f"Processed {len(all_results)}/{len(ms_files)} files  ({len(errors)} errors)")
     print(f"{'='*65}\n")
 
     if not all_results:
@@ -1298,8 +1592,7 @@ def main():
 
     tsv_out = TSV_DIR / "all_metrics.tsv"
     with open(tsv_out, "w", newline="") as csvf:
-        writer = csv.DictWriter(csvf, fieldnames=all_cols,
-                                delimiter="\t", extrasaction="ignore")
+        writer = csv.DictWriter(csvf, fieldnames=all_cols, delimiter="\t", extrasaction="ignore")
         writer.writeheader()
         for row in flat_rows:
             writer.writerow({k: row.get(k, "") for k in all_cols})
@@ -1309,22 +1602,20 @@ def main():
     print(f"Columns       : {len(all_cols)}")
 
     numeric_metrics = [
-        #acquisition coverage
         "MS:4000059", "MS:4000060", "MS:4000067", "MS:4000053",
         "MS:4000065", "MS:4000066", "MS:4000095", "MS:4000096",
         "MS:4000097", "MS:4000098", "MS:4000099", "MS:4000100",
-        #intensity / signal
         "MS:4000029", "MS:4000030", "MS:4000031",
-        #spectral quality
         "NEW-004", "NEW-005", "NEW-006", "NEW-007", "NEW-008",
         "NEW-009", "NEW-010", "NEW-011", "NEW-012", "NEW-014",
-        #metadata / annotation
         "NEW-021", "NEW-023", "NEW-024",
-        #XIC feature detection
         "MS:4000050",
-        #DIA metrics
         "MS:4000193", "MS:4000194",
         "NEW-016", "NEW-017", "NEW-018", "NEW-019", "NEW-020",
+        "NEW-027", "NEW-028", "NEW-029", "NEW-030", "NEW-031", "NEW-032",
+        "NEW-035", "NEW-036", "NEW-037",
+        "NEW-038", "NEW-039", "NEW-040",
+        "NEW-041", "NEW-042", "NEW-043", "NEW-044", "NEW-045",
     ]
 
     datasets_dict = {}
@@ -1334,30 +1625,29 @@ def main():
     summary_rows = []
     for ds, rows in sorted(datasets_dict.items()):
         sr = {
-            "dataset":  ds,
-            "n_files":  len(rows),
-            "mode":     rows[0].get("NEW-001", "?"),
-            "centroid": rows[0].get("NEW-022", "?"),
+            "dataset":           ds,
+            "n_files":           len(rows),
+            "mode":              rows[0].get("NEW-001", "?"),
+            "centroid":          rows[0].get("NEW-022", "?"),
+            "contains_profile":  rows[0].get("NEW-033", "?"),
+            "contains_centroid": rows[0].get("NEW-034", "?"),
         }
         for mk in numeric_metrics:
             vals = [r.get(mk) for r in rows
-                    if r.get(mk) is not None
-                    and isinstance(r.get(mk), (int, float))]
+                    if r.get(mk) is not None and isinstance(r.get(mk), (int, float))]
             if vals:
                 sr[f"{mk}_mean"] = round(float(np.mean(vals)),  4)
                 sr[f"{mk}_std"]  = round(float(np.std(vals)),   4)
                 sr[f"{mk}_min"]  = round(float(np.min(vals)),   4)
                 sr[f"{mk}_max"]  = round(float(np.max(vals)),   4)
             else:
-                sr[f"{mk}_mean"] = sr[f"{mk}_std"] = \
-                sr[f"{mk}_min"]  = sr[f"{mk}_max"] = ""
+                sr[f"{mk}_mean"] = sr[f"{mk}_std"] = sr[f"{mk}_min"] = sr[f"{mk}_max"] = ""
         summary_rows.append(sr)
 
     sum_out  = TSV_DIR / "summary_by_dataset.tsv"
     sum_keys = list(summary_rows[0].keys())
     with open(sum_out, "w", newline="") as sf:
-        writer = csv.DictWriter(sf, fieldnames=sum_keys,
-                                delimiter="\t", extrasaction="ignore")
+        writer = csv.DictWriter(sf, fieldnames=sum_keys, delimiter="\t", extrasaction="ignore")
         writer.writeheader()
         writer.writerows(summary_rows)
 
@@ -1385,12 +1675,19 @@ def main():
 
     print(f"\n{'─'*78}")
     print("N/A guide:")
-    print("  MS1 metrics N/A  = 0 MS1 scans (MS2-only or targeted acquisition)")
-    print("  MS2 metrics N/A  = 0 MS2 scans (MS1-only survey or metabolomics)")
-    print("  Metadata ok = 0  = isolation window / activation absent from file")
-    print("  Redundancy N/A   = precursor m/z not present in file metadata")
-    print("  Mode=MS2-only    = only MS2 exported; DDA/DIA not determinable")
-    print("  Mode=MS1-only    = survey or native MS; no fragmentation")
+    print("  MS1 metrics N/A      = 0 MS1 scans (MS2-only or targeted)")
+    print("  MS2 metrics N/A      = 0 MS2 scans (MS1-only survey)")
+    print("  MS:4000097/098 N/A   = single-scan run (< 2 MS1 scans to compare)")
+    print("  Metadata ok = 0      = isolation window / activation absent")
+    print("  Redundancy N/A       = DIA/MS1-only mode, or no precursor m/z in file")
+    print("  MS1 acq mz N/A       = scan window limits absent (mzXML/MGF)")
+    print("  MS2 acq above N/A    = scan window upper limit absent in file")
+    print("  Unique tgt mz = 0    = MS1-only run, no MS2 precursors")
+    print("  Mode=MS2-only        = only MS2 exported; DDA/DIA not determinable")
+    print("  Mode=MS1-only        = survey or native MS; no fragmentation")
+    print("  MS:4000116=[None..] = precursor intensity absent in file metadata")
+    print("  NEW-026 absent       = reserved slot, not yet assigned a metric")
+    print("  NEW-045 > 0          = corrupt binary scans skipped; partial metrics")
     print(f"{'─'*78}")
     print(f"\nDone. Results: {RESULTS_DIR.absolute()}")
 
