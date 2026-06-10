@@ -9,7 +9,7 @@
           "inputFiles": [
             {
               "name": "250501_ZMM_KMI_Ftsk_3.mzML",
-              "location": "/Users/fateme/Desktop/test_metadata/QC/QC_pipeline/data/PXD073126/250501_ZMM_KMI_Ftsk_3.mzML",
+              "location": "/Users/fateme/Desktop/test_metadata/QC/QC_pipeline/test2/data/PXD073126/250501_ZMM_KMI_Ftsk_3.mzML",
               "fileFormat": {
                 "accession": "MS:1000564",
                 "name": "PSI mzML file"
@@ -90,7 +90,7 @@
               "accession": "MS:4000030",
               "name": "area under TIC (MS2)",
               "description": "Trapezoidal area under the MS2 TIC curve",
-              "value": 2792807.9252978023
+              "value": 389903.31606889976
             }
           },
           {
@@ -183,6 +183,94 @@
           },
           {
             "cvParameter": {
+              "accession": "NEW:0000027",
+              "name": "MS1 positive polarity count",
+              "description": "Number of MS1 spectra acquired in positive ion mode",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000028",
+              "name": "MS1 negative polarity count",
+              "description": "Number of MS1 spectra acquired in negative ion mode",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000029",
+              "name": "MS2 positive polarity count",
+              "description": "Number of MS2 spectra acquired in positive ion mode",
+              "value": 5798
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000030",
+              "name": "MS2 negative polarity count",
+              "description": "Number of MS2 spectra acquired in negative ion mode",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000031",
+              "name": "MS3+ positive polarity count",
+              "description": "Number of MS3-or-higher spectra in positive ion mode",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000032",
+              "name": "MS3+ negative polarity count",
+              "description": "Number of MS3-or-higher spectra in negative ion mode",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000033",
+              "name": "contains profile spectra",
+              "description": "Boolean: run contains at least one profile-mode spectrum",
+              "value": false
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000034",
+              "name": "contains centroid spectra",
+              "description": "Boolean: run contains at least one centroid-mode spectrum",
+              "value": false
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000043",
+              "name": "number of unique target m/z values",
+              "description": "Count of distinct isolation window target m/z values in MS2 scans",
+              "value": 4759
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000044",
+              "name": "number of unique precursor m/z values",
+              "description": "Count of distinct selected ion m/z values across all MS2 scans",
+              "value": 4759
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000045",
+              "name": "corrupted scan fraction",
+              "description": "Fraction of scans skipped due to unreadable binary arrays. 0.0 = no corruption; >0 = partial file, metrics from good scans only.",
+              "value": 0.0
+            }
+          },
+          {
+            "cvParameter": {
               "accession": "MS:4000062",
               "name": "MS2 density quantiles",
               "description": "Q1/Q2/Q3 of MS2 peak counts per scan",
@@ -255,10 +343,10 @@
               "name": "MS2 frequency per RT quarter",
               "description": "Average MS2 scan frequency in each of 4 equal RT windows",
               "value": [
-                183.80165289256198,
-                188.29752066115702,
-                188.03305785123968,
-                174.41322314049586
+                184.92618492618493,
+                188.13778813778814,
+                182.33618233618233,
+                45.27324527324527
               ]
             },
             "unit": {
@@ -305,9 +393,19 @@
             "cvParameter": {
               "accession": "NEW:0000003",
               "name": "scan polarity distribution",
-              "description": "Count by polarity",
+              "description": "Count by polarity (all MS levels)",
               "value": {
                 "positive": 5798
+              }
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000025",
+              "name": "MS level x polarity scan counts",
+              "description": "Scan counts keyed by 'MSn_polarity' (e.g. MS1_positive)",
+              "value": {
+                "MS2_positive": 5798
               }
             }
           }

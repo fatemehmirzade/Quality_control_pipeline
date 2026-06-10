@@ -9,7 +9,7 @@
           "inputFiles": [
             {
               "name": "Xinyi2_-80.mzXML",
-              "location": "/Users/fateme/Desktop/test_metadata/QC/QC_pipeline/data/PXD079072/Xinyi2_-80.mzXML",
+              "location": "/Users/fateme/Desktop/test_metadata/QC/QC_pipeline/test2/data/PXD079072/Xinyi2_-80.mzXML",
               "fileFormat": {
                 "accession": "MS:1000566",
                 "name": "ISB mzXML file"
@@ -291,6 +291,130 @@
           },
           {
             "cvParameter": {
+              "accession": "NEW:0000027",
+              "name": "MS1 positive polarity count",
+              "description": "Number of MS1 spectra acquired in positive ion mode",
+              "value": 7698
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000028",
+              "name": "MS1 negative polarity count",
+              "description": "Number of MS1 spectra acquired in negative ion mode",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000029",
+              "name": "MS2 positive polarity count",
+              "description": "Number of MS2 spectra acquired in positive ion mode",
+              "value": 39559
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000030",
+              "name": "MS2 negative polarity count",
+              "description": "Number of MS2 spectra acquired in negative ion mode",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000031",
+              "name": "MS3+ positive polarity count",
+              "description": "Number of MS3-or-higher spectra in positive ion mode",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000032",
+              "name": "MS3+ negative polarity count",
+              "description": "Number of MS3-or-higher spectra in negative ion mode",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000033",
+              "name": "contains profile spectra",
+              "description": "Boolean: run contains at least one profile-mode spectrum",
+              "value": false
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000034",
+              "name": "contains centroid spectra",
+              "description": "Boolean: run contains at least one centroid-mode spectrum",
+              "value": true
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000035",
+              "name": "MS1 minimum observed m/z",
+              "description": "Smallest m/z value observed across all MS1 peaks",
+              "value": 300.0082702636719
+            },
+            "unit": {
+              "accession": "MS:1000040",
+              "name": "m/z"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000036",
+              "name": "MS1 maximum observed m/z",
+              "description": "Largest m/z value observed across all MS1 peaks",
+              "value": 1199.9755859375
+            },
+            "unit": {
+              "accession": "MS:1000040",
+              "name": "m/z"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000037",
+              "name": "MS1 observed m/z range",
+              "description": "Difference between MS1 max and min observed m/z",
+              "value": 899.9673156738281
+            },
+            "unit": {
+              "accession": "MS:1000040",
+              "name": "m/z"
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000043",
+              "name": "number of unique target m/z values",
+              "description": "Count of distinct isolation window target m/z values in MS2 scans",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000044",
+              "name": "number of unique precursor m/z values",
+              "description": "Count of distinct selected ion m/z values across all MS2 scans",
+              "value": 0
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000045",
+              "name": "corrupted scan fraction",
+              "description": "Fraction of scans skipped due to unreadable binary arrays. 0.0 = no corruption; >0 = partial file, metrics from good scans only.",
+              "value": 0.0
+            }
+          },
+          {
+            "cvParameter": {
               "accession": "MS:4000061",
               "name": "MS1 density quantiles",
               "description": "Q1/Q2/Q3 of MS1 peak counts per scan",
@@ -468,9 +592,20 @@
             "cvParameter": {
               "accession": "NEW:0000003",
               "name": "scan polarity distribution",
-              "description": "Count by polarity",
+              "description": "Count by polarity (all MS levels)",
               "value": {
                 "positive": 47257
+              }
+            }
+          },
+          {
+            "cvParameter": {
+              "accession": "NEW:0000025",
+              "name": "MS level x polarity scan counts",
+              "description": "Scan counts keyed by 'MSn_polarity' (e.g. MS1_positive)",
+              "value": {
+                "MS1_positive": 7698,
+                "MS2_positive": 39559
               }
             }
           }
