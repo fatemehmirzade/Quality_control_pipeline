@@ -167,53 +167,53 @@ def build_mzqc(metrics, file_path, dataset):
                     "Fraction of MS2 scans with charge state annotated", None, None),
         "NEW-024": ("NEW:0000024", "injection time annotation rate",
                     "Fraction of MS2 scans with ion injection time recorded", None, None),
-        "NEW-027": ("NEW:0000027", "MS1 positive polarity count",
+        "NEW-026": ("NEW:0000026", "MS1 positive polarity count",
                     "Number of MS1 spectra acquired in positive ion mode", None, None),
-        "NEW-028": ("NEW:0000028", "MS1 negative polarity count",
+        "NEW-027": ("NEW:0000027", "MS1 negative polarity count",
                     "Number of MS1 spectra acquired in negative ion mode", None, None),
-        "NEW-029": ("NEW:0000029", "MS2 positive polarity count",
+        "NEW-028": ("NEW:0000028", "MS2 positive polarity count",
                     "Number of MS2 spectra acquired in positive ion mode", None, None),
-        "NEW-030": ("NEW:0000030", "MS2 negative polarity count",
+        "NEW-029": ("NEW:0000029", "MS2 negative polarity count",
                     "Number of MS2 spectra acquired in negative ion mode", None, None),
-        "NEW-031": ("NEW:0000031", "MS3+ positive polarity count",
+        "NEW-030": ("NEW:0000030", "MS3+ positive polarity count",
                     "Number of MS3-or-higher spectra in positive ion mode", None, None),
-        "NEW-032": ("NEW:0000032", "MS3+ negative polarity count",
+        "NEW-031": ("NEW:0000031", "MS3+ negative polarity count",
                     "Number of MS3-or-higher spectra in negative ion mode", None, None),
-        "NEW-033": ("NEW:0000033", "contains profile spectra",
+        "NEW-032": ("NEW:0000032", "contains profile spectra",
                     "Boolean: run contains at least one profile-mode spectrum", None, None),
-        "NEW-034": ("NEW:0000034", "contains centroid spectra",
+        "NEW-033": ("NEW:0000033", "contains centroid spectra",
                     "Boolean: run contains at least one centroid-mode spectrum", None, None),
-        "NEW-035": ("NEW:0000035", "MS1 minimum observed m/z",
+        "NEW-034": ("NEW:0000034", "MS1 minimum observed m/z",
                     "Smallest m/z value observed across all MS1 peaks",
                     "MS:1000040", "m/z"),
-        "NEW-036": ("NEW:0000036", "MS1 maximum observed m/z",
+        "NEW-035": ("NEW:0000035", "MS1 maximum observed m/z",
                     "Largest m/z value observed across all MS1 peaks",
                     "MS:1000040", "m/z"),
-        "NEW-037": ("NEW:0000037", "MS1 observed m/z range",
+        "NEW-036": ("NEW:0000036", "MS1 observed m/z range",
                     "Difference between MS1 max and min observed m/z",
                     "MS:1000040", "m/z"),
-        "NEW-038": ("NEW:0000038", "MS1 minimum acquisition m/z",
+        "NEW-037": ("NEW:0000037", "MS1 minimum acquisition m/z",
                     "Lower bound of the configured MS1 scan window",
                     "MS:1000040", "m/z"),
-        "NEW-039": ("NEW:0000039", "MS1 maximum acquisition m/z",
+        "NEW-038": ("NEW:0000038", "MS1 maximum acquisition m/z",
                     "Upper bound of the configured MS1 scan window",
                     "MS:1000040", "m/z"),
-        "NEW-040": ("NEW:0000040", "MS1 acquisition m/z range",
+        "NEW-039": ("NEW:0000039", "MS1 acquisition m/z range",
                     "Width of the configured MS1 scan window (max - min)",
                     "MS:1000040", "m/z"),
-        "NEW-041": ("NEW:0000041", "MS2 isolation window width median",
+        "NEW-040": ("NEW:0000040", "MS2 isolation window width median",
                     "Median isolation window width (lo+hi offsets) across all MS2 scans",
                     "UO:0000221", "dalton"),
-        "NEW-042": ("NEW:0000042", "MS2 acquisition range above precursor",
+        "NEW-041": ("NEW:0000041", "MS2 acquisition range above precursor",
                     "Median distance from precursor m/z to MS2 scan window upper limit",
                     "MS:1000040", "m/z"),
-        "NEW-043": ("NEW:0000043", "number of unique target m/z values",
+        "NEW-042": ("NEW:0000042", "number of unique target m/z values",
                     "Count of distinct isolation window target m/z values in MS2 scans",
                     None, None),
-        "NEW-044": ("NEW:0000044", "number of unique precursor m/z values",
+        "NEW-043": ("NEW:0000043", "number of unique precursor m/z values",
                     "Count of distinct selected ion m/z values across all MS2 scans",
                     None, None),
-        "NEW-045": ("NEW:0000045", "corrupted scan fraction",
+        "NEW-044": ("NEW:0000044", "corrupted scan fraction",
                     "Fraction of scans skipped due to unreadable binary arrays. "
                     "0.0 = no corruption; >0 = partial file, metrics from good scans only.",
                     None, None),
@@ -1398,25 +1398,25 @@ def compute_all_metrics(mzml_path):
     m["NEW-024"] = (float(it_annotated / ms2_total)
                     if ms2_total > 0 and not mgf_file else None)
     m["NEW-025"] = level_pol_dict if level_pol_dict else None
-    m["NEW-027"] = ms1_pos_count
-    m["NEW-028"] = ms1_neg_count
-    m["NEW-029"] = ms2_pos_count
-    m["NEW-030"] = ms2_neg_count
-    m["NEW-031"] = ms3p_pos_count
-    m["NEW-032"] = ms3p_neg_count
-    m["NEW-033"] = contains_profile
-    m["NEW-034"] = contains_centroid
-    m["NEW-035"] = ms1_obs_min
-    m["NEW-036"] = ms1_obs_max
-    m["NEW-037"] = ms1_obs_range
-    m["NEW-038"] = ms1_acq_min
-    m["NEW-039"] = ms1_acq_max
-    m["NEW-040"] = ms1_acq_range
-    m["NEW-041"] = ms2_iso_width_median
-    m["NEW-042"] = ms2_acq_above_prec
-    m["NEW-043"] = n_unique_target_mz
-    m["NEW-044"] = n_unique_precursor_mz
-    m["NEW-045"] = (round(float(corrupted_scans) / total_scans_seen, 6)
+    m["NEW-026"] = ms1_pos_count
+    m["NEW-027"] = ms1_neg_count
+    m["NEW-028"] = ms2_pos_count
+    m["NEW-029"] = ms2_neg_count
+    m["NEW-030"] = ms3p_pos_count
+    m["NEW-031"] = ms3p_neg_count
+    m["NEW-032"] = contains_profile
+    m["NEW-033"] = contains_centroid
+    m["NEW-034"] = ms1_obs_min
+    m["NEW-035"] = ms1_obs_max
+    m["NEW-036"] = ms1_obs_range
+    m["NEW-037"] = ms1_acq_min
+    m["NEW-038"] = ms1_acq_max
+    m["NEW-039"] = ms1_acq_range
+    m["NEW-040"] = ms2_iso_width_median
+    m["NEW-041"] = ms2_acq_above_prec
+    m["NEW-042"] = n_unique_target_mz
+    m["NEW-043"] = n_unique_precursor_mz
+    m["NEW-044"] = (round(float(corrupted_scans) / total_scans_seen, 6)
                     if total_scans_seen > 0 else 0.0)
 
     if mode in ("DIA", "DIA-MS2only"):
@@ -1515,13 +1515,13 @@ def main():
         mode = metrics.get("NEW-001", "?")
         print(f"  Mode          : {mode}")
         print(f"  Centroid      : {metrics.get('NEW-022', '?')}")
-        print(f"  Profile flag  : {metrics.get('NEW-033', '?')}")
-        print(f"  Centroid flag : {metrics.get('NEW-034', '?')}")
+        print(f"  Profile flag  : {metrics.get('NEW-032', '?')}")
+        print(f"  Centroid flag : {metrics.get('NEW-033', '?')}")
         print(f"  MS1 scans     : {metrics.get('MS:4000059', '?')}")
-        print(f"  MS1 pos/neg   : {metrics.get('NEW-027', 0)} / {metrics.get('NEW-028', 0)}")
+        print(f"  MS1 pos/neg   : {metrics.get('NEW-026', 0)} / {metrics.get('NEW-027', 0)}")
         print(f"  MS2 scans     : {metrics.get('MS:4000060', '?')}")
-        print(f"  MS2 pos/neg   : {metrics.get('NEW-029', 0)} / {metrics.get('NEW-030', 0)}")
-        print(f"  MS3+ pos/neg  : {metrics.get('NEW-031', 0)} / {metrics.get('NEW-032', 0)}")
+        print(f"  MS2 pos/neg   : {metrics.get('NEW-028', 0)} / {metrics.get('NEW-029', 0)}")
+        print(f"  MS3+ pos/neg  : {metrics.get('NEW-030', 0)} / {metrics.get('NEW-031', 0)}")
         print(f"  Run duration  : {sfmt(metrics.get('MS:4000067'), 1)} min")
         print(f"  Chrom dur     : {sfmt(metrics.get('MS:4000053'), 1)} min")
         print(f"  AUC MS1       : {sfmt(metrics.get('MS:4000029'), 0)}")
@@ -1536,12 +1536,12 @@ def main():
         print(f"  Zero peaks%   : {sfmt(metrics.get('NEW-008'))}")
         print(f"  Baseline      : {sfmt(metrics.get('NEW-011'), 0)}")
         print(f"  SBR           : {sfmt(metrics.get('NEW-012'), 1)}")
-        print(f"  MS1 obs mz    : {sfmt(metrics.get('NEW-035'), 1)} - {sfmt(metrics.get('NEW-036'), 1)}")
-        print(f"  MS1 acq mz    : {sfmt(metrics.get('NEW-038'), 1)} - {sfmt(metrics.get('NEW-039'), 1)}")
-        print(f"  MS2 iso width : {sfmt(metrics.get('NEW-041'))}")
-        print(f"  MS2 acq above : {sfmt(metrics.get('NEW-042'))}")
-        print(f"  Unique tgt mz : {metrics.get('NEW-043', 'N/A')}")
-        print(f"  Unique prec mz: {metrics.get('NEW-044', 'N/A')}")
+        print(f"  MS1 obs mz    : {sfmt(metrics.get('NEW-034'), 1)} - {sfmt(metrics.get('NEW-035'), 1)}")
+        print(f"  MS1 acq mz    : {sfmt(metrics.get('NEW-037'), 1)} - {sfmt(metrics.get('NEW-038'), 1)}")
+        print(f"  MS2 iso width : {sfmt(metrics.get('NEW-040'))}")
+        print(f"  MS2 acq above : {sfmt(metrics.get('NEW-041'))}")
+        print(f"  Unique tgt mz : {metrics.get('NEW-042', 'N/A')}")
+        print(f"  Unique prec mz: {metrics.get('NEW-043', 'N/A')}")
         print(f"  Metadata ok   : {sfmt(metrics.get('NEW-021'))}")
         print(f"  Charge annot  : {sfmt(metrics.get('NEW-023'))}")
         print(f"  IT annot      : {sfmt(metrics.get('NEW-024'))}")
@@ -1563,7 +1563,7 @@ def main():
             xic_fwhm_q2 = v51[1]
         print(f"  XIC-FWHM Q2   : {sfmt(xic_fwhm_q2, 3)} min")
         print(f"  XIC50         : {sfmt(metrics.get('MS:4000050'))}")
-        _n_corrupt = metrics.get("NEW-045", 0.0) or 0.0
+        _n_corrupt = metrics.get("NEW-044", 0.0) or 0.0
         if _n_corrupt > 0:
             print(f"  Corrupt scans : {_n_corrupt:.4f} ({_n_corrupt*100:.1f}%) — partial metrics")
         print(f"  Time          : {elapsed:.1f}s\n")
@@ -1612,10 +1612,10 @@ def main():
         "MS:4000050",
         "MS:4000193", "MS:4000194",
         "NEW-016", "NEW-017", "NEW-018", "NEW-019", "NEW-020",
-        "NEW-027", "NEW-028", "NEW-029", "NEW-030", "NEW-031", "NEW-032",
-        "NEW-035", "NEW-036", "NEW-037",
-        "NEW-038", "NEW-039", "NEW-040",
-        "NEW-041", "NEW-042", "NEW-043", "NEW-044", "NEW-045",
+        "NEW-026", "NEW-027", "NEW-028", "NEW-029", "NEW-030", "NEW-031",
+        "NEW-034", "NEW-035", "NEW-036",
+        "NEW-037", "NEW-038", "NEW-039",
+        "NEW-040", "NEW-041", "NEW-042", "NEW-043", "NEW-044",
     ]
 
     datasets_dict = {}
@@ -1629,8 +1629,8 @@ def main():
             "n_files":           len(rows),
             "mode":              rows[0].get("NEW-001", "?"),
             "centroid":          rows[0].get("NEW-022", "?"),
-            "contains_profile":  rows[0].get("NEW-033", "?"),
-            "contains_centroid": rows[0].get("NEW-034", "?"),
+            "contains_profile":  rows[0].get("NEW-032", "?"),
+            "contains_centroid": rows[0].get("NEW-033", "?"),
         }
         for mk in numeric_metrics:
             vals = [r.get(mk) for r in rows
@@ -1686,8 +1686,7 @@ def main():
     print("  Mode=MS2-only        = only MS2 exported, DDA/DIA not determinable")
     print("  Mode=MS1-only        = survey or native MS; no fragmentation")
     print("  MS:4000116=[None..] = precursor intensity absent in file metadata")
-    print("  NEW-026 absent       = reserved slot, not yet assigned a metric")
-    print("  NEW-045 > 0          = corrupt binary scans skipped, partial metrics")
+    print("  NEW-044 > 0          = corrupt binary scans skipped, partial metrics")
     print(f"{'─'*78}")
     print(f"\nDone. Results: {RESULTS_DIR.absolute()}")
 
