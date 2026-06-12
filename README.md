@@ -1,7 +1,7 @@
 # Quality_control_pipeline
-Downloads public proteomics datasets from PRIDE, converts raw files to mzML and computes 61 ID free QC metrics exported as mzQC v1.0.0 files.
+Downloads public proteomics datasets from PRIDE, converts raw files to mzML and computes 81 ID free QC metrics exported as mzQC v1.0.0 files.
 
-List of the ID free metrics can be found here:
+List of the metrics can be found here:
 
 https://docs.google.com/spreadsheets/d/1F8sB_X-BrMjBR4qKguJSscKVq-VgFH1NGMXitptHvMg/edit?usp=sharing
 
