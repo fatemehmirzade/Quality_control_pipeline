@@ -12,7 +12,7 @@ https://docs.google.com/spreadsheets/d/1F8sB_X-BrMjBR4qKguJSscKVq-VgFH1NGMXitptH
 pip install scipy numpy pandas pyteomics lxml pymzml joblib tqdm requests pyopenms
 ```
 For RAW file conversion you also need:
-- **ThermoRawFileParser + Mono** — for Thermo `.raw` files
+- **ThermoRawFileParser + Mono** for Thermo `.raw` files
 
 ---
 
