@@ -5,6 +5,9 @@ List of the metrics can be found here:
 
 https://docs.google.com/spreadsheets/d/1F8sB_X-BrMjBR4qKguJSscKVq-VgFH1NGMXitptHvMg/edit?usp=sharing
 
+More detailed list of New metrics can be found here:
+
+
 ---
 
 ## Installation
