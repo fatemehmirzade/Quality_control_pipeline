@@ -140,9 +140,7 @@ def main():
     )
     args = parser.parse_args()
 
-    print("=" * 60)
-    print("Thermo RAW → mzML Conversion (ThermoRawFileParser + Mono)")
-    print("=" * 60)
+    print("Thermo RAW -> mzML Conversion (ThermoRawFileParser + Mono)")
 
     print("\nChecking prerequisites...")
     ok = True
@@ -211,9 +209,8 @@ def main():
         else:
             fail_count += 1
 
-    print("\n" + "=" * 60)
     print("Conversion summary")
-    print("=" * 60)
+    print("===============================")
     print(f"  Converted : {ok_count}")
     print(f"  Skipped   : {skip_count}  (already existed)")
     print(f"  Failed    : {fail_count}")
@@ -226,6 +223,7 @@ def main():
 
     if fail_count > 0:
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
