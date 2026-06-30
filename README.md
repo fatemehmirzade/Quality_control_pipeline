@@ -51,5 +51,5 @@ results/
 ## Supported File Formats
 | Format | Handled by |
 |---|---|
-| `.mzML`, `.mzXML`, `.mgf` | Read directly — no conversion needed |
+| `.mzML`, `.mzXML`, `.mgf` | Read directly |
 | Thermo `.raw` | ThermoRawFileParser + Mono |
