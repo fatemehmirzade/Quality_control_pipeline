@@ -32,7 +32,7 @@ python3 QC_pipeline.py   #Compute QC metrics
 | Script | What it does |
 |---|---|
 | `convert.py` | Converts Thermo RAW files to mzML using ThermoRawFileParser + Mono |
-| `QC_pipeline.py` | Reads all MS files, computes 61 QC metrics, writes `.mzQC` and `.tsv` outputs |
+| `QC_pipeline.py` | Reads all MS files, computes 81 QC metrics, writes `.mzQC` and `.tsv` outputs |
 
 ---
 
