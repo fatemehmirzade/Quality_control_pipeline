@@ -12,7 +12,7 @@
               "location": "/Users/fateme/Desktop/test_metadata/QC/QC_pipeline/test2/data/PXD079072/Xinyi1_-80.mzXML",
               "fileFormat": {
                 "accession": "MS:1000566",
-                "name": "ISB mzXML file"
+                "name": "ISB mzXML format"
               },
               "fileProperties": [
                 {
@@ -26,8 +26,8 @@
           "analysisSoftware": [
             {
               "cvParameter": {
-                "accession": "MS:1003282",
-                "name": "QC pipeline"
+                "accession": "MS:1003399",
+                "name": "quality control software"
               }
             }
           ]
@@ -52,7 +52,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000067",
-              "name": "MS1 RT range",
+              "name": "MS run duration",
               "description": "Total retention time span of the run",
               "value": 189.9899641205
             },
@@ -76,7 +76,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000065",
-              "name": "MS1 fastest frequency",
+              "name": "fastest frequency for MS level 1 collection",
               "description": "Maximum MS1 scan acquisition frequency",
               "value": 87.4791577262746
             },
@@ -88,7 +88,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000066",
-              "name": "MS2 fastest frequency",
+              "name": "fastest frequency for MS level 2 collection",
               "description": "Maximum MS2 scan acquisition frequency",
               "value": 2633.7621977192525
             },
@@ -100,7 +100,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000095",
-              "name": "MS1 slowest frequency",
+              "name": "slowest frequency for MS level 1 collection",
               "description": "Minimum MS1 scan acquisition frequency",
               "value": 19.03486659342341
             },
@@ -112,7 +112,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000096",
-              "name": "MS2 slowest frequency",
+              "name": "slowest frequency for MS level 2 collection",
               "description": "Minimum MS2 scan acquisition frequency",
               "value": 0.05373299951555499
             },
@@ -124,7 +124,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000029",
-              "name": "area under TIC (MS1)",
+              "name": "area under TIC in MS1",
               "description": "Trapezoidal area under the MS1 TIC curve",
               "value": 16677466933.980593
             }
@@ -132,7 +132,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000030",
-              "name": "area under TIC (MS2)",
+              "name": "area under TIC in MS2",
               "description": "Trapezoidal area under the MS2 TIC curve",
               "value": 24044920.443965994
             }
@@ -140,7 +140,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000031",
-              "name": "MS1 to MS2 signal ratio",
+              "name": "peak area of MS1 vs MS2 signal ratio",
               "description": "Ratio of MS1 AUC to MS2 AUC",
               "value": 693.5962617487369
             }
@@ -148,7 +148,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000097",
-              "name": "MS1 signal jump count",
+              "name": "MS1 signal jump (10x) count",
               "description": "Number of 10x intensity jumps in consecutive MS1 TICs",
               "value": 72
             }
@@ -156,7 +156,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000098",
-              "name": "MS1 signal fall count",
+              "name": "MS1 signal fall (10x) count",
               "description": "Number of 10x intensity falls in consecutive MS1 TICs",
               "value": 72
             }
@@ -164,7 +164,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000099",
-              "name": "number of empty MS1 spectra",
+              "name": "number of empty MS1 scans",
               "description": "MS1 scans with zero total intensity",
               "value": 0
             }
@@ -172,7 +172,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000100",
-              "name": "number of empty MS2 spectra",
+              "name": "number of empty MS2 scans",
               "description": "MS2 scans with zero total intensity",
               "value": 292
             }
@@ -213,7 +213,7 @@
             "cvParameter": {
               "accession": "NEW:0000007",
               "name": "MS2 fragment dynamic range",
-              "description": "Log10 ratio of 95th to 5th percentile MS2 TIC",
+              "description": "Log10 ratio of 95th to 5th percentile of non-zero MS2 TIC values across scans",
               "value": 1.687676861567934
             }
           },
@@ -291,7 +291,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000027",
+              "accession": "NEW:0000026",
               "name": "MS1 positive polarity count",
               "description": "Number of MS1 spectra acquired in positive ion mode",
               "value": 7070
@@ -299,7 +299,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000028",
+              "accession": "NEW:0000027",
               "name": "MS1 negative polarity count",
               "description": "Number of MS1 spectra acquired in negative ion mode",
               "value": 0
@@ -307,7 +307,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000029",
+              "accession": "NEW:0000028",
               "name": "MS2 positive polarity count",
               "description": "Number of MS2 spectra acquired in positive ion mode",
               "value": 39902
@@ -315,7 +315,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000030",
+              "accession": "NEW:0000029",
               "name": "MS2 negative polarity count",
               "description": "Number of MS2 spectra acquired in negative ion mode",
               "value": 0
@@ -323,7 +323,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000031",
+              "accession": "NEW:0000030",
               "name": "MS3+ positive polarity count",
               "description": "Number of MS3-or-higher spectra in positive ion mode",
               "value": 0
@@ -331,7 +331,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000032",
+              "accession": "NEW:0000031",
               "name": "MS3+ negative polarity count",
               "description": "Number of MS3-or-higher spectra in negative ion mode",
               "value": 0
@@ -339,7 +339,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000033",
+              "accession": "NEW:0000032",
               "name": "contains profile spectra",
               "description": "Boolean: run contains at least one profile-mode spectrum",
               "value": false
@@ -347,7 +347,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000034",
+              "accession": "NEW:0000033",
               "name": "contains centroid spectra",
               "description": "Boolean: run contains at least one centroid-mode spectrum",
               "value": true
@@ -355,7 +355,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000035",
+              "accession": "NEW:0000034",
               "name": "MS1 minimum observed m/z",
               "description": "Smallest m/z value observed across all MS1 peaks",
               "value": 300.00286865234375
@@ -367,7 +367,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000036",
+              "accession": "NEW:0000035",
               "name": "MS1 maximum observed m/z",
               "description": "Largest m/z value observed across all MS1 peaks",
               "value": 1199.9864501953125
@@ -379,7 +379,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000037",
+              "accession": "NEW:0000036",
               "name": "MS1 observed m/z range",
               "description": "Difference between MS1 max and min observed m/z",
               "value": 899.9835815429688
@@ -391,7 +391,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000043",
+              "accession": "NEW:0000042",
               "name": "number of unique target m/z values",
               "description": "Count of distinct isolation window target m/z values in MS2 scans",
               "value": 0
@@ -399,7 +399,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000044",
+              "accession": "NEW:0000043",
               "name": "number of unique precursor m/z values",
               "description": "Count of distinct selected ion m/z values across all MS2 scans",
               "value": 0
@@ -407,7 +407,7 @@
           },
           {
             "cvParameter": {
-              "accession": "NEW:0000045",
+              "accession": "NEW:0000044",
               "name": "corrupted scan fraction",
               "description": "Fraction of scans skipped due to unreadable binary arrays. 0.0 = no corruption; >0 = partial file, metrics from good scans only.",
               "value": 0.0
@@ -448,14 +448,14 @@
               ]
             },
             "unit": {
-              "accession": "UO:0000221",
-              "name": "dalton"
+              "accession": "MS:1000040",
+              "name": "m/z"
             }
           },
           {
             "cvParameter": {
               "accession": "MS:4000070",
-              "name": "RT acquisition range",
+              "name": "retention time acquisition range",
               "description": "[min, max] retention time",
               "value": [
                 0.010790451000000001,
@@ -470,7 +470,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000183",
-              "name": "TIC quantile RT fractions",
+              "name": "TIC quantile RT fraction",
               "description": "RT fractions at which Q1/Q2/Q3/Q4 of cumulative TIC are reached",
               "value": [
                 0.45626876466057054,
@@ -483,7 +483,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000184",
-              "name": "MS1 quantile RT fractions",
+              "name": "MS1 quantile RT fraction",
               "description": "RT fractions at which Q1/Q2/Q3/Q4 of MS1 scan count are reached",
               "value": [
                 0.1687868920196991,
@@ -496,7 +496,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000185",
-              "name": "MS2 quantile RT fractions",
+              "name": "MS2 quantile RT fraction",
               "description": "RT fractions at which Q1/Q2/Q3/Q4 of MS2 scan count are reached",
               "value": [
                 0.33929380846031504,
@@ -533,7 +533,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000106",
-              "name": "MS1 frequency per RT quarter",
+              "name": "MS1 frequency in equal parts of subsequent RT",
               "description": "Average MS1 scan frequency in each of 4 equal RT windows",
               "value": [
                 51.41324198474349,
@@ -550,7 +550,7 @@
           {
             "cvParameter": {
               "accession": "MS:4000107",
-              "name": "MS2 frequency per RT quarter",
+              "name": "MS2 frequency in equal parts of subsequent RT",
               "description": "Average MS2 scan frequency in each of 4 equal RT windows",
               "value": [
                 127.80386233863818,
@@ -615,8 +615,8 @@
     "controlledVocabularies": [
       {
         "name": "Proteomics Standards Initiative Mass Spectrometry Ontology",
-        "uri": "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.130/psi-ms.obo",
-        "version": "4.1.130"
+        "uri": "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.244/psi-ms.obo",
+        "version": "4.1.244"
       },
       {
         "name": "Unit Ontology",
