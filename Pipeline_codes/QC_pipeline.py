@@ -45,17 +45,17 @@ def build_mzqc(metrics, file_path, dataset):
     ext   = Path(file_path).suffix.lower()
 
     fmt_map = {
-        ".mzml":  {"accession": "MS:1000564", "name": "PSI mzML file"},
-        ".mzxml": {"accession": "MS:1000566", "name": "ISB mzXML file"},
-        ".mgf":   {"accession": "MS:1001062", "name": "Mascot MGF file"},
+        ".mzml":  {"accession": "MS:1000584", "name": "mzML format"},
+        ".mzxml": {"accession": "MS:1000566", "name": "ISB mzXML format"},
+        ".mgf":   {"accession": "MS:1001062", "name": "Mascot MGF format"},
     }
-    fmt_cv = fmt_map.get(ext, {"accession": "MS:1000564", "name": "mzML file"})
+    fmt_cv = fmt_map.get(ext, {"accession": "MS:1000584", "name": "mzML format"})
 
     controlled_vocabularies = [
         {
             "name":    "Proteomics Standards Initiative Mass Spectrometry Ontology",
-            "uri":     "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.130/psi-ms.obo",
-            "version": "4.1.130",
+            "uri":     "https://github.com/HUPO-PSI/psi-ms-CV/releases/download/v4.1.244/psi-ms.obo",
+            "version": "4.1.244",
         },
         {
             "name":    "Unit Ontology",
@@ -77,7 +77,7 @@ def build_mzqc(metrics, file_path, dataset):
     }
 
     analysis_software = [
-        {"cvParameter": {"accession": "MS:1003282", "name": "QC pipeline"}}
+        {"cvParameter": {"accession": "MS:1003399", "name": "quality control software"}}
     ]
 
     #scalar metrics
@@ -86,31 +86,31 @@ def build_mzqc(metrics, file_path, dataset):
                        "Total number of MS1 survey scans", None, None),
         "MS:4000060": ("MS:4000060", "number of MS2 spectra",
                        "Total number of MS2 fragment scans", None, None),
-        "MS:4000067": ("MS:4000067", "MS1 RT range",
+        "MS:4000067": ("MS:4000067", "MS run duration",
                        "Total retention time span of the run", "UO:0000031", "minute"),
         "MS:4000053": ("MS:4000053", "chromatography duration",
                        "RT span of the active elution window in MS1", "UO:0000031", "minute"),
-        "MS:4000029": ("MS:4000029", "area under TIC (MS1)",
+        "MS:4000029": ("MS:4000029", "area under TIC in MS1",
                        "Trapezoidal area under the MS1 TIC curve", None, None),
-        "MS:4000030": ("MS:4000030", "area under TIC (MS2)",
+        "MS:4000030": ("MS:4000030", "area under TIC in MS2",
                        "Trapezoidal area under the MS2 TIC curve", None, None),
-        "MS:4000031": ("MS:4000031", "MS1 to MS2 signal ratio",
+        "MS:4000031": ("MS:4000031", "peak area of MS1 vs MS2 signal ratio",
                        "Ratio of MS1 AUC to MS2 AUC", None, None),
-        "MS:4000065": ("MS:4000065", "MS1 fastest frequency",
+        "MS:4000065": ("MS:4000065", "fastest frequency for MS level 1 collection",
                        "Maximum MS1 scan acquisition frequency", "UO:0000106", "hertz"),
-        "MS:4000066": ("MS:4000066", "MS2 fastest frequency",
+        "MS:4000066": ("MS:4000066", "fastest frequency for MS level 2 collection",
                        "Maximum MS2 scan acquisition frequency", "UO:0000106", "hertz"),
-        "MS:4000095": ("MS:4000095", "MS1 slowest frequency",
+        "MS:4000095": ("MS:4000095", "slowest frequency for MS level 1 collection",
                        "Minimum MS1 scan acquisition frequency", "UO:0000106", "hertz"),
-        "MS:4000096": ("MS:4000096", "MS2 slowest frequency",
+        "MS:4000096": ("MS:4000096", "slowest frequency for MS level 2 collection",
                        "Minimum MS2 scan acquisition frequency", "UO:0000106", "hertz"),
-        "MS:4000097": ("MS:4000097", "MS1 signal jump count",
+        "MS:4000097": ("MS:4000097", "MS1 signal jump (10x) count",
                        "Number of 10x intensity jumps in consecutive MS1 TICs", None, None),
-        "MS:4000098": ("MS:4000098", "MS1 signal fall count",
+        "MS:4000098": ("MS:4000098", "MS1 signal fall (10x) count",
                        "Number of 10x intensity falls in consecutive MS1 TICs", None, None),
-        "MS:4000099": ("MS:4000099", "number of empty MS1 spectra",
+        "MS:4000099": ("MS:4000099", "number of empty MS1 scans",
                        "MS1 scans with zero total intensity", None, None),
-        "MS:4000100": ("MS:4000100", "number of empty MS2 spectra",
+        "MS:4000100": ("MS:4000100", "number of empty MS2 scans",
                        "MS2 scans with zero total intensity", None, None),
         "MS:4000193": ("MS:4000193", "DIA isolation window median cycle time",
                        "Median time between successive scans of the same window",
@@ -131,7 +131,7 @@ def build_mzqc(metrics, file_path, dataset):
         "NEW-006": ("NEW:0000006", "fraction sparse MS2 spectra",
                     "Fraction of MS2 scans with fewer than 10 peaks", None, None),
         "NEW-007": ("NEW:0000007", "MS2 fragment dynamic range",
-                    "Log10 ratio of 95th to 5th percentile MS2 TIC", None, None),
+                    "Log10 ratio of 95th to 5th percentile of non-zero MS2 TIC values across scans", None, None),
         "NEW-008": ("NEW:0000008", "fraction zero-intensity peaks",
                     "Fraction of all reported peaks with zero intensity", None, None),
         "NEW-009": ("NEW:0000009", "TIC coefficient of variation",
@@ -241,40 +241,40 @@ def build_mzqc(metrics, file_path, dataset):
         "MS:4000062": ("MS:4000062", "MS2 density quantiles",
                        "Q1/Q2/Q3 of MS2 peak counts per scan", None, None),
         "MS:4000069": ("MS:4000069", "m/z acquisition range",
-                       "[min, max] m/z across all scans", "UO:0000221", "dalton"),
-        "MS:4000070": ("MS:4000070", "RT acquisition range",
+                       "[min, max] m/z across all scans", "MS:1000040", "m/z"),
+        "MS:4000070": ("MS:4000070", "retention time acquisition range",
                        "[min, max] retention time", "UO:0000031", "minute"),
-        "MS:4000183": ("MS:4000183", "TIC quantile RT fractions",
+        "MS:4000183": ("MS:4000183", "TIC quantile RT fraction",
                        "RT fractions at which Q1/Q2/Q3/Q4 of cumulative TIC are reached",
                        None, None),
-        "MS:4000184": ("MS:4000184", "MS1 quantile RT fractions",
+        "MS:4000184": ("MS:4000184", "MS1 quantile RT fraction",
                        "RT fractions at which Q1/Q2/Q3/Q4 of MS1 scan count are reached",
                        None, None),
-        "MS:4000185": ("MS:4000185", "MS2 quantile RT fractions",
+        "MS:4000185": ("MS:4000185", "MS2 quantile RT fraction",
                        "RT fractions at which Q1/Q2/Q3/Q4 of MS2 scan count are reached",
                        None, None),
         "MS:4000186": ("MS:4000186", "MS1 TIC-change quantile ratios",
                        "Log ratios of successive TIC-change quantiles", None, None),
         "MS:4000187": ("MS:4000187", "MS1 TIC quantile ratios",
                        "Log ratios of successive TIC quantiles", None, None),
-        "MS:4000106": ("MS:4000106", "MS1 frequency per RT quarter",
+        "MS:4000106": ("MS:4000106", "MS1 frequency in equal parts of subsequent RT",
                        "Average MS1 scan frequency in each of 4 equal RT windows",
                        "UO:0000106", "hertz"),
-        "MS:4000107": ("MS:4000107", "MS2 frequency per RT quarter",
+        "MS:4000107": ("MS:4000107", "MS2 frequency in equal parts of subsequent RT",
                        "Average MS2 scan frequency in each of 4 equal RT windows",
                        "UO:0000106", "hertz"),
         "MS:4000116": ("MS:4000116", "MS2 precursor intensity distribution",
                        "Q1/Q2/Q3 of MS2 precursor ion intensities", None, None),
         "MS:4000195": ("MS:4000195", "DIA isolation window m/z widths",
                        "[min, max] of DIA isolation window widths", "UO:0000221", "dalton"),
-        "MS:4000196": ("MS:4000196", "DIA isolation window sampling counts",
+        "MS:4000196": ("MS:4000196", "DIA isolation window count",
                        "[min, max] number of cycles per DIA window", None, None),
-        "MS:4000197": ("MS:4000197", "DIA isolation window half-TIC RT",
+        "MS:4000197": ("MS:4000197", "DIA isolation window half TIC RT",
                        "[min, max] RT at which each window reaches 50% cumulative TIC",
                        "UO:0000031", "minute"),
         "MS:4000198": ("MS:4000198", "DIA isolation window TIC",
                        "[min, max] total TIC per DIA window", None, None),
-        "MS:4000199": ("MS:4000199", "DIA isolation window peak counts",
+        "MS:4000199": ("MS:4000199", "DIA isolation window peak count",
                        "[min, max] median peak count per DIA window", None, None),
         "MS:4000051": ("MS:4000051", "XIC-FWHM quantiles",
                        "Q1/Q2/Q3 of chromatographic peak widths (FWHM) of "
@@ -299,7 +299,7 @@ def build_mzqc(metrics, file_path, dataset):
 
     #dict valued metrics
     DICT_METRICS = {
-        "MS:4000063": ("MS:4000063", "MS2 known precursor charge fractions",
+        "MS:4000063": ("MS:4000063", "MS2 known precursor charges fractions",
                        "Fraction of MS2 scans at each observed charge state", None, None),
         "NEW-002":    ("NEW:0000002", "MS level distribution",
                        "Count of scans at each MS level", None, None),
@@ -566,7 +566,11 @@ def detect_mode(window_pairs, n_ms2, ms1_count=0):
 
 
 def detect_centroid(path_str, n_sample=30):
-    """return centroid, profile, mixed or unknown"""
+    """Return 'centroid', 'profile', 'mixed' or 'unknown'.
+    Priority: CV-term flags in mzML (reliable). Fallback: peak density heuristic
+    (peaks per m/z unit, median over first n_sample MS1 scans of dominant polarity)
+    Thresholds: density > 10 -> profile, density < 3 -> centroid, else mixed.
+    Heuristic is approximate; result should be verified for unusual instruments."""
     mgf_file   = is_mgf_path(path_str)
     mzxml_file = is_mzxml_path(path_str)
     has_centroid_flag = False
@@ -609,9 +613,9 @@ def detect_centroid(path_str, n_sample=30):
     if not densities:
         return "unknown"
     d = float(np.median(densities))
-    if d > 5:
+    if d > 10:
         return "profile"
-    if d < 2:
+    if d < 3:
         return "centroid"
     return "mixed"
 
@@ -980,8 +984,12 @@ def compute_all_metrics(mzml_path):
     prev_ms1_rt_by_pol   = {}
     prev_ms2_rt_by_pol   = {}
 
+    ms1_total_count          = 0   
+    ms2_total_count_all      = 0   
+    ms1_peaks_all_scans      = []  
+    ms2_peaks_all_scans      = []  
+
     ms1_empty = ms2_empty    = 0
-    ms2_total                = 0
     charge_annotated         = 0
     it_annotated             = 0
     meta_complete            = 0
@@ -1070,6 +1078,8 @@ def compute_all_metrics(mzml_path):
                         all_mz_max = max(all_mz_max, float(mzarr.max()))
 
                     if level == 1:
+                        ms1_total_count += 1  
+                        ms1_peaks_all_scans.append(npk)  
                         #track for entropy and empty count
                         ms1_entropy_vals.append(_spectral_entropy(ints))
                         if tic == 0:
@@ -1099,10 +1109,11 @@ def compute_all_metrics(mzml_path):
                                 ms1_acq_win_max_vals.append(hi_win)
 
                     elif level == 2:
+                        ms2_total_count_all += 1        
+                        ms2_peaks_all_scans.append(npk) 
                         ms2_entropy_vals.append(_spectral_entropy(ints))
                         if tic == 0:
                             ms2_empty += 1
-                        ms2_total += 1
 
                         if rt_valid:
                             ms2_tics_all.append(tic)
@@ -1140,7 +1151,7 @@ def compute_all_metrics(mzml_path):
                                 if lo is not None and hi is not None and pmz is not None:
                                     lo_f, hi_f = float(lo), float(hi)
                                     center = tmz if tmz is not None else pmz
-                                    wp   = (round(pmz - lo_f, 3), round(pmz + hi_f, 3))
+                                    wp   = (round(center - lo_f, 3), round(center + hi_f, 3))
                                     wkey = (round(center - lo_f, 2), round(center + hi_f, 2))
                                     window_pairs.append(wp)
                                     if wkey not in dia_windows:
@@ -1246,7 +1257,7 @@ def compute_all_metrics(mzml_path):
 
     auc_ms1 = auc_trapz(ms1_tics, ms1_rts) if len(ms1_tics) >= 2 else None
     auc_ms2 = auc_trapz(ms2_tics, ms2_rts) if len(ms2_tics) >= 2 else None
-    mode    = detect_mode(window_pairs, ms2_total, ms1_count=int(len(ms1_tics)))
+    mode    = detect_mode(window_pairs, ms2_total_count_all, ms1_count=ms1_total_count)
 
     run_duration = (float(all_rts.max() - all_rts.min())
                     if len(all_rts) > 1 and all_rts.max() > 0 else None)
@@ -1286,7 +1297,7 @@ def compute_all_metrics(mzml_path):
                 ms1_ms2_ratio.append(float(n1 / n2) if n2 > 0 else None)
 
     redundancy = None
-    if mode in ("DDA", "DDA-MS2only") and ms2_prec_mz and ms2_total > 0:
+    if mode in ("DDA", "DDA-MS2only") and ms2_prec_mz and ms2_total_count_all > 0:
         mz_arr = np.array(ms2_prec_mz)
         if len(mz_arr) > 1:
             sorted_mz = np.sort(mz_arr)
@@ -1296,7 +1307,7 @@ def compute_all_metrics(mzml_path):
             redundant = int(has_match.sum())
         else:
             redundant = 0
-        redundancy = float(redundant / ms2_total)
+        redundancy = float(redundant / len(mz_arr))
 
     def _lp(lbl, pol):
         return level_pol_counts.get((lbl, pol), 0)
@@ -1342,8 +1353,8 @@ def compute_all_metrics(mzml_path):
 
     #assemble metric dict
     m = {}
-    m["MS:4000059"] = int(len(ms1_tics))
-    m["MS:4000060"] = int(len(ms2_tics))
+    m["MS:4000059"] = ms1_total_count
+    m["MS:4000060"] = ms2_total_count_all
     m["MS:4000067"] = run_duration
     m["MS:4000053"] = chromatography_duration(ms1_tics, ms1_rts)
     m["MS:4000069"] = ([all_mz_min, all_mz_max] if all_mz_min != float("inf") else None)
@@ -1363,8 +1374,8 @@ def compute_all_metrics(mzml_path):
     m["MS:4000183"] = tic_quantile_rt_frac(_all_tics_sorted, _all_rts_sorted)
     m["MS:4000184"] = tic_quantile_rt_frac(np.ones(len(ms1_rts)), ms1_rts)
     m["MS:4000185"] = tic_quantile_rt_frac(np.ones(len(ms2_rts)), ms2_rts)
-    m["MS:4000061"] = safe_quantiles(ms1_peaks)
-    m["MS:4000062"] = safe_quantiles(ms2_peaks)
+    m["MS:4000061"] = safe_quantiles(np.array(ms1_peaks_all_scans, dtype=float))  
+    m["MS:4000062"] = safe_quantiles(np.array(ms2_peaks_all_scans, dtype=float)) 
     m["MS:4000097"] = int(jumps) if jumps is not None else None
     m["MS:4000098"] = int(falls) if falls is not None else None
     m["MS:4000099"] = int(ms1_empty)
@@ -1372,7 +1383,7 @@ def compute_all_metrics(mzml_path):
     m["MS:4000063"] = charge_fracs
     m["MS:4000116"] = safe_quantiles(ms2_prec_int)
 
-    xic = compute_xic_metrics(path_str, ms2_count=ms2_total)
+    xic = compute_xic_metrics(path_str, ms2_count=ms2_total_count_all)
     m["MS:4000051"] = xic["MS:4000051"]
     m["MS:4000050"] = xic["MS:4000050"]
 
@@ -1381,8 +1392,8 @@ def compute_all_metrics(mzml_path):
     m["NEW-003"] = dict(Counter(polarities))
     m["NEW-004"] = float(np.median(ms1_entropy_vals)) if ms1_entropy_vals else None
     m["NEW-005"] = float(np.median(ms2_entropy_vals)) if ms2_entropy_vals else None
-    m["NEW-006"] = (float(sum(1 for p in ms2_peaks if p < 10) / len(ms2_peaks))
-                    if len(ms2_peaks) > 0 else None)
+    m["NEW-006"] = (float(sum(1 for p in ms2_peaks_all_scans if p < 10) / len(ms2_peaks_all_scans))
+                    if len(ms2_peaks_all_scans) > 0 else None)  
     m["NEW-007"] = dyn_range
     m["NEW-008"] = float(zero_peaks / total_peaks) if total_peaks > 0 else None
     m["NEW-009"] = coeff_variation(tics_for_cv)
@@ -1392,11 +1403,11 @@ def compute_all_metrics(mzml_path):
     m["NEW-013"] = safe_quantiles(iso_widths) if iso_widths else None
     m["NEW-014"] = redundancy
     m["NEW-015"] = ms1_ms2_ratio
-    m["NEW-021"] = float(meta_complete / ms2_total) if ms2_total > 0 else None
+    m["NEW-021"] = float(meta_complete / ms2_total_count_all) if ms2_total_count_all > 0 else None 
     m["NEW-022"] = centroid_str
-    m["NEW-023"] = float(charge_annotated / ms2_total) if ms2_total > 0 else None
-    m["NEW-024"] = (float(it_annotated / ms2_total)
-                    if ms2_total > 0 and not mgf_file else None)
+    m["NEW-023"] = float(charge_annotated / ms2_total_count_all) if ms2_total_count_all > 0 else None  
+    m["NEW-024"] = (float(it_annotated / ms2_total_count_all)
+                    if ms2_total_count_all > 0 and not mgf_file else None)  
     m["NEW-025"] = level_pol_dict if level_pol_dict else None
     m["NEW-026"] = ms1_pos_count
     m["NEW-027"] = ms1_neg_count
